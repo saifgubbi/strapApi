@@ -114,7 +114,7 @@ function getChart(req, res) {
 			              SUM(QTY) as QTY 
 	                         FROM ASN_T A 
 	                        WHERE PART_GRP='${partGrp}' 
-	                          AND ASN_DATE BETWEEN ${dateCrit} 
+	                          AND TRUNC(ASN_DATE) BETWEEN ${dateCrit} 
 	                     GROUP BY PART_NO,CUST_PART_NO`;
         console.log(selectStatement);
 
