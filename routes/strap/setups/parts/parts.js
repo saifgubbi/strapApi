@@ -54,7 +54,7 @@ function updateData(req, res) {
                 SET CUST_PART_NO = :1 ,
                 VARIANT = :2,
                 PARTS_TYPE = :3,
-                SERIALIZED = :4,
+                SERIALIZED = :4
                 WHERE PART_GRP=:5 AND PART_NO = :6`;
     var bindVars = [req.body.custPartNo, req.body.variant, req.body.partsType, req.body.serialized,req.body.partGrp, req.body.partNo];
     console.log(bindVars.join());
