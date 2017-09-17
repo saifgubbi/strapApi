@@ -32,8 +32,8 @@ function getData(req, res) {
 
 function removeData(req, res) {
     let ts = new Date().getTime();
-    let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19) ";
-    let bindVars = [req.query.invId, 'Invoice', 'ASN Delete', new Date(), '', '', '', '', '', req.query.invId, req.query.userId, '', 0, ts, '', req.query.asnId, req.query.partGrp, '', ''];
+    let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
+    let bindVars = [req.query.invId, 'Invoice', 'ASN Delete', new Date(), '', '', '', '', '', req.query.invId, req.query.userId, '', 0, ts, '', req.query.asnId, req.query.partGrp, '', '',''];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
