@@ -35,9 +35,9 @@ function getData(req, res) {
 }
 
 function removeInv(req, res) {
-    let invId = req.body.invId;
-    let partGrp = req.body.partGrp;
-    let userId = req.body.userId;
+    let invId = req.query.invId;
+    let partGrp = req.query.partGrp;
+    let userId = req.query.userId;
     let ts = new Date().getTime();
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
     let bindVars = [invId, 'Invoice', 'Delete', new Date(), '', '', '', '', '', invId, userId, '', 0, ts, '', '', partGrp, '', '',''];
