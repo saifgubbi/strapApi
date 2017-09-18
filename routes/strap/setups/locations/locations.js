@@ -42,7 +42,7 @@ function addData(req, res) {
 
 function removeData(req, res) {
     var sqlStatement = "DELETE FROM LOCATIONS_T WHERE LOC_ID = (:1)";
-    var bindVars = [req.body.locId];
+    var bindVars = [req.query.locId];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

@@ -44,7 +44,7 @@ function addData(req, res) {
 
 function removeData(req, res) {
     var sqlStatement = "DELETE FROM PARTS_T WHERE PART_GRP=:1 AND PART_NO = :2";
-    var bindVars = [req.body.partGrp, req.body.partNo];
+    var bindVars = [req.query.partGrp, req.query.partNo];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

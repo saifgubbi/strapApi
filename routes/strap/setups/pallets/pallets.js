@@ -21,7 +21,7 @@ module.exports = router;
 
 
 function getData(req, res) {
-    var palletId = (req.query.binId || '%') + '%';
+    var palletId = (req.query.palletId || '%') + '%';
     var locId = (req.query.locId || '%') + '%';
     var owner = (req.query.owner || '%') + '%';
     var status = (req.query.status || '%') + '%';
@@ -54,8 +54,9 @@ function addData(req, res) {
 }
 
 function removeData(req, res) {
+    console.log('Pallet '+req.query.palletId);
     var sqlStatement = "DELETE FROM PALLETS_T WHERE PALLET_ID = (:1)";
-    var bindVars = [req.body.PALLET_ID];
+    var bindVars = [req.query.palletId];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

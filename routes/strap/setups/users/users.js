@@ -106,7 +106,7 @@ function removeData(req, res) {
 
     function deleteUser(conn, cb) {
         let sqlStatement = "DELETE FROM USERS_T WHERE USER_ID = (:1)";
-        let bindVars = [req.body.userId];
+        let bindVars = [req.query.userId];
         conn.execute(sqlStatement
                 , bindVars, {
                     autoCommit: true// Override the default non-autocommit behavior

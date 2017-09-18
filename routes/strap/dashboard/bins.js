@@ -80,13 +80,13 @@ function getData(req, res) {
 
 
                 let binResult = [];
-
+                //console.log(bin);
                 result.rows.forEach(function (row) {
                     console.log(row);
                     let rowAdded = false;
                     binResult.forEach(function (bin) {
-                        console.log(bin);
-                        if (bin.STATUS === row.STATUS && bin.LOC_ID === row.LOC_ID) {
+                        //console.log(bin);
+                        if (bin.STATUS === row.STATUS && bin.FROM_LOC === row.FROM_LOC) {
 
                             rowAdded = true;
                             bin.COUNT = bin.COUNT + row.COUNT;
@@ -220,7 +220,7 @@ function getBinHist(req, res) {
 
         let selectStatement = `SELECT * 
                                  FROM EVENTS_T A
-                                WHERE TYPE = '${eventType}' 
+                                WHERE EVENT_TYPE = '${eventType}' 
                                   AND EVENT_ID='${binId}' 
                              ORDER BY EVENT_TS DESC`;
         console.log(selectStatement);

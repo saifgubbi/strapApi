@@ -65,8 +65,9 @@ function addData(req, res) {
 
 
 function removeData(req, res) {
+   // console.log('Request'+req.query.binId);
     var sqlStatement = "DELETE FROM BINS_T WHERE BIN_ID = (:1)";
-    var bindVars = [req.body.binId];
+    var bindVars = [req.query.binId];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

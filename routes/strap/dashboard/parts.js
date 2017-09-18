@@ -301,7 +301,6 @@ function getChart(req, res) {
 function getPartsDet(req, res) {
     var locId = req.query.locId;
     var status = req.query.status;
-
     var sqlStatement = `SELECT PART_NO,
 	                       COUNT(*) AS BINS,
 			       SUM(QTY) as QTY,
