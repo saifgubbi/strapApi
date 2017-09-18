@@ -237,7 +237,7 @@ function getInvHist(req, res) {
         let selectStatement = `SELECT * 
                                  FROM EVENTS_T A 
                                 WHERE EVENT_TYPE = 'Invoice' 
-                                  AND ID='${invId}' 
+                                  AND EVENT_ID='${invId}' 
                              ORDER BY EVENT_TS DESC`;
         console.log(selectStatement);
 
@@ -347,10 +347,14 @@ function getGeoLoc(req, res) {
 
 
     function getCurrentLoc(conn, cb) {
-
-        request('http://l.tigerjump.in/tjbosch/getDeviceLocation?key=15785072&deviceID=' + geoRes.inv.deviceID, function (err, response, result) {
+            console.log(geoRes.inv.deviceID);
+           // var r=request.defaults({'proxy':'http://rb-proxy-in.bosch.com:8080'});
+            //r.request('http://www.google.com', function (err, response,result) {
+       request('http://l.tigerjump.in/tjbosch/getDeviceLocation?key=15785072&deviceID=' + geoRes.inv.deviceID, function (err, response,result) {
+            console.log(result);
             if (err) {
                 cb(err, conn);
+               // console.log(err);
             } else {
                 console.log(result);
                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -362,9 +366,9 @@ function getGeoLoc(req, res) {
                 res.end(JSON.stringify(geoRes));
                 cb(null, conn);
             }
-//        console.log('error:', error); // Print the error if one occurred
-//        console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-//        console.log('body:', body); // Print the HTML for the Google homepage.
+ //       console.log('error:', error); // Print the error if one occurred
+ //       console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+  //      console.log('body:', body); // Print the HTML for the Google homepage.
         });
     }
 
