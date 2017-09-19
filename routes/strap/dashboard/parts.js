@@ -301,16 +301,16 @@ function getChart(req, res) {
 function getPartsDet(req, res) {
     var locId = req.query.locId;
     var status = req.query.status;
-    var sqlStatement = `SELECT PART_NO,
-	                       COUNT(*) AS BINS,
-			       SUM(QTY) as QTY,
-			       INVOICE_NUM,
-			       LABEL 
-		          FROM BINS_T 
-	                 WHERE STATUS='${status}' 
-	                   AND FROM_LOC='${locId}'
-                      GROUP BY PART_NO,INVOICE_NUM,LABEL`;
+        var sqlStatement = `SELECT PART_NO,
+                                   COUNT(*) AS BINS,
+                                   SUM(QTY) as QTY,
+                                   INVOICE_NUM
+                              FROM BINS_T 
+                             WHERE STATUS='${status}' 
+                               AND FROM_LOC='${locId}'
+                          GROUP BY PART_NO,INVOICE_NUM`;
 
     var bindVars = [];
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }

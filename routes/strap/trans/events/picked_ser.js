@@ -36,14 +36,20 @@ function picked(req, res) {
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
 
     req.body.objArray.forEach(function (obj) {
-        obj.partArray.forEach(function (part) {
-            let binVars;
-            binVars = [obj.oldBinId, 'Bin', 'Transferred', new Date(), locId, '', '', partNo, obj.qty, '', userId, '', 0, ts, obj.newBinId, pickList, partGrp, '', '', part];
+        if (obj.partArray) {
+            obj.partArray.forEach(function (part) {
+                let binVars;
+                binVars = [obj.oldBinId, 'Bin', 'Transferred', new Date(), locId, '', '', partNo, 1, '', userId, '', 0, ts, obj.newBinId, pickList, partGrp, '', '', part];
+                bindArr.push(binVars);
+                binVars = [obj.newBinId, 'Bin', 'Picked', new Date(), locId, '', '', partNo, 1, '', userId, '', 0, ts, obj.oldBinId, pickList, partGrp, '', '', part];
+                bindArr.push(binVars);
+                ts++;
+            })
+        } else {
+            binVars = [obj.newBinId, 'Bin', 'Picked', new Date(), locId, '', '', partNo, obj.qty, '', userId, '', 0, ts, obj.oldBinId, pickList, partGrp, '', '', ''];
             bindArr.push(binVars);
-            binVars = [obj.newBinId, 'Bin', 'Picked', new Date(), locId, '', '', partNo, obj.qty, '', userId, '', 0, ts, obj.oldBinId, pickList, partGrp, '', '', part];
-            bindArr.push(binVars);
-            ts++;
-        });
+        }
+        ;
     });
     insertEvents(req, res, sqlStatement, bindArr);
 }

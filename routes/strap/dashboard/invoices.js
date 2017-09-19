@@ -348,13 +348,10 @@ function getGeoLoc(req, res) {
 
     function getCurrentLoc(conn, cb) {
             console.log(geoRes.inv.deviceID);
-           // var r=request.defaults({'proxy':'http://rb-proxy-in.bosch.com:8080'});
-            //r.request('http://www.google.com', function (err, response,result) {
        request('http://l.tigerjump.in/tjbosch/getDeviceLocation?key=15785072&deviceID=' + geoRes.inv.deviceID, function (err, response,result) {
             console.log(result);
             if (err) {
                 cb(err, conn);
-               // console.log(err);
             } else {
                 console.log(result);
                 res.writeHead(200, {'Content-Type': 'application/json'});
