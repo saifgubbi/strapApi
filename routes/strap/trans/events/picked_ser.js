@@ -36,7 +36,7 @@ function picked(req, res) {
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
 
     req.body.objArray.forEach(function (obj) {
-        if (obj.partArray) {
+        if (obj.partArray.length>0) {
             obj.partArray.forEach(function (part) {
                 let binVars;
                 binVars = [obj.oldBinId, 'Bin', 'Transferred', new Date(), locId, '', '', partNo, 1, '', userId, '', 0, ts, obj.newBinId, pickList, partGrp, '', '', part];
@@ -46,6 +46,7 @@ function picked(req, res) {
                 ts++;
             })
         } else {
+            let binVars;
             binVars = [obj.newBinId, 'Bin', 'Picked', new Date(), locId, '', '', partNo, obj.qty, '', userId, '', 0, ts, obj.oldBinId, pickList, partGrp, '', '', ''];
             bindArr.push(binVars);
         }
