@@ -160,7 +160,7 @@ function removeData(req, res) {
 
 function removeUserPart(req, res) {
     var sqlStatement = "DELETE FROM USER_PARTS_T WHERE USER_ID=:1 AND PART_GRP=:2";
-    bindVars = [req.body.userId, req.body.partGrp];
+    bindVars = [req.query.userId, req.query.partGrp];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
@@ -168,13 +168,16 @@ function removeUserPart(req, res) {
 function updateData(req, res) {
 
     var sqlStatement = `UPDATE USERS_T
-                SET NAME = :1 , PASSWORD=:2, EMAIL= :3, PHONE=:4,ROLE=:5,LOC_ID=:6,PART_GRP=:7
-                 WHERE USER_ID=:8`;
-    hashPass(req.body.password, function (hashPassword) {
-        var bindVars = [req.body.name, hashPassword, req.body.email, req.body.phone, req.body.role, req.body.locId, req.body.partGrp, req.body.userId];
+                SET NAME = :1 , EMAIL= :2, PHONE=:3,ROLE=:4,LOC_ID=:5,PART_GRP=:6
+                 WHERE USER_ID=:7`;
+    var bindVars = [req.body.name, req.body.email, req.body.phone, req.body.role, req.body.locId, req.body.partGrp, req.body.userId];
         console.log(bindVars.join());
         op.singleSQL(sqlStatement, bindVars, req, res);
-    });
+//    hashPass(req.body.password, function (hashPassword) {
+//        var bindVars = [req.body.name, req.body.email, req.body.phone, req.body.role, req.body.locId, req.body.partGrp, req.body.userId];
+//        console.log(bindVars.join());
+//        op.singleSQL(sqlStatement, bindVars, req, res);
+//    });
 
 }
 

@@ -59,7 +59,7 @@ function sendResult(result, res) {
 
 function handleError(err, conn, res) {
     console.log('Error Occured' + err.message);
-    res.status(500).json(err.message);
+    //res.status(500).json(err.message);
     if (conn) {
         conn.close();
     }

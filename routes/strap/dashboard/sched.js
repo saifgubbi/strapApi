@@ -5,7 +5,7 @@ var moment = require('moment');
 var async = require('async');
 
 var oracledb = require('oracledb');
-
+//oracledb.prefetchRows = 100;
 router.get('/data', function (req, res) {
     getData(req, res);
 });
@@ -22,16 +22,44 @@ function getData(req, res) {
     var option = req.query.option;
 
     if (option === 'TD1') {
-        dateCrit = `SYSDATE-1 AND SYSDATE`;
+        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE)`;
     } else {
-        dateCrit = `SYSDATE-1 AND SYSDATE+3`;
+        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+2)`;
     }
 
-    let selectStatement = `SELECT * 
-	                     FROM SCHED_T A 
-	                    WHERE PART_GRP='${partGrp}' 
-	                      AND SCHED_DT BETWEEN ${dateCrit} 
-	                 ORDER BY SCHED_DT,SCHED_HR,PART_NO`;
+              let selectStatement = `SELECT SCHED_DT,PART_NO,NVL(SCHED_QTY,0) SCHED_QTY,NVL(WIP_QTY,0) WIP_QTY, NVL(ASN_QTY,0) ASN_QTY, NVL(WH_QTY,0) WH_QTY,NVL(DISP_QTY,0) DISP_QTY 
+                                               FROM(WITH 
+                                      SCHED_TBL AS(
+                                                  SELECT PART_NO,NVL(QTY,0)QTY,NVL(WIP_QTY,0) WIP_QTY,SCHED_DT
+                                                    FROM SCHED_T 
+						   WHERE PART_GRP='${partGrp}'
+                                                     AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 QTY,0 WIP_QTY,SYSDATE FROM DUAL),
+                                        ASN_TBL AS(
+                                                  SELECT PART_NO,NVL(QTY,0) QTY 
+						    FROM ASN_T 
+						   WHERE PART_GRP='${partGrp}'
+                                                     AND TRUNC(ASN_DATE) BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 QTY FROM DUAL ),
+                                         INV_TBL AS(
+                                                  SELECT IL.PART_NO,DECODE(IH.STATUS,'Dispatched',0,'Reached',0,IL.QTY) WH_QTY,DECODE(IH.STATUS,'Dispatched',IL.QTY,'Reached',IL.QTY,0) DISP_QTY
+                                                    FROM INV_HDR_T IH,INV_LINE_T IL,LOCATIONS_T L 
+                                                   WHERE IH.PART_GRP='${partGrp}'
+                                                     AND IH.INVOICE_NUM=IL.INVOICE_NUM
+                                                     AND IH.FROM_LOC=L.LOC_ID
+                                                     AND L.TYPE='Warehouse'
+                                                     AND TRUNC(STATUS_DT) BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 WH_QTY,0 DISP_QTY FROM DUAL
+                                                     )
+                                              SELECT SCHED_TBL.SCHED_DT SCHED_DT,SCHED_TBL.PART_NO PART_NO,NVL(SCHED_TBL.QTY,0) SCHED_QTY,SCHED_TBL.WIP_QTY WIP_QTY, NVL(ASN_TBL.QTY,0) ASN_QTY, NVL(INV_TBL.WH_QTY,0) WH_QTY,NVL(INV_TBL.DISP_QTY,0) DISP_QTY 
+						FROM SCHED_TBL,ASN_TBL,INV_TBL
+                                               WHERE SCHED_TBL.PART_NO=ASN_TBL.PART_NO(+)
+                                                 AND SCHED_TBL.PART_NO=INV_TBL.PART_NO(+)
+                                                 AND SCHED_TBL.PART_NO IS NOT NULL)    
+                                                 WHERE (SCHED_QTY+WIP_QTY+ASN_QTY+WH_QTY+DISP_QTY )<>0`;
     console.log(selectStatement);
 
     var bindVars = [];
@@ -45,7 +73,6 @@ function getChart(req, res) {
 
     var partGrp = req.query.partGrp;
     var option = req.query.option;
-    var parts = {schedSeries: [], schedGroups: [], partCount: 0, partQuantity: 0};
 
     var doConnect = function (cb) {
         op.doConnectCB(function (err, conn) {
@@ -61,242 +88,101 @@ function getChart(req, res) {
     if (option === 'TD1') {
         dateCrit = `trunc(SYSDATE) AND trunc(SYSDATE)`;
     } else {
-        dateCrit = `trunc(SYSDATE) AND trunc(SYSDATE+3)`;
+        dateCrit = `trunc(SYSDATE) AND trunc(SYSDATE+2)`;
     }
 
 
     function getHdr(conn, cb) {
         console.log("Getting Schedule Counts");
-
-        let selectStatement = `SELECT PART_NO,
-	                              CUST_PART_NO,
-			              SUM(QTY) as QTY,
-			              SUM(WIP_QTY) as WIP_QTY 
-	                         FROM SCHED_T A 
-	                        WHERE PART_GRP='${partGrp}' 
-	                          AND SCHED_DT BETWEEN ${dateCrit} 
-	                     GROUP BY PART_NO,CUST_PART_NO`;
-        console.log(selectStatement);
-
-        let bindVars = [];
-
-        conn.execute(selectStatement
-                , bindVars, {
-                    outFormat: oracledb.OBJECT, // Return the result as Object
-                    autoCommit: true// Override the default non-autocommit behavior
-                }, function (err, result)
-        {
-            if (err) {
-                console.log("Error Occured: ", err);
-                cb(err, conn);
-            } else {
-
-                result.rows.forEach(function (row) {
-                    var seriesObj = {name: row.PART_NO, items: [{y: row.QTY, label: row.QTY}, {y: row.WIP_QTY, label: row.WIP_QTY}, {y: 0, label: 0}, {y: 0, label: 0}, {y: 0, label: 0}]};
-                    parts.schedSeries.push(seriesObj);
-                });
-
-                parts.schedGroups = ['Sched Qty', 'WIP Qty', 'ASN Qty', 'WH Qty','Disp Qty'];
-
-                cb(null, conn);
-            }
-
-        });
-
-    }
-
-    function getASN(conn, cb) {
-        console.log("Getting ASN Count");
-
-
-        let selectStatement = `SELECT PART_NO,
-	                              CUST_PART_NO,
-			              SUM(QTY) as QTY 
-	                         FROM ASN_T A 
-	                        WHERE PART_GRP='${partGrp}' 
-	                          AND TRUNC(ASN_DATE) BETWEEN ${dateCrit} 
-	                     GROUP BY PART_NO,CUST_PART_NO`;
-        console.log(selectStatement);
-
-        let bindVars = [];
-
-        conn.execute(selectStatement
-                , bindVars, {
-                    outFormat: oracledb.OBJECT, // Return the result as Object
-                    autoCommit: true// Override the default non-autocommit behavior
-                }, function (err, result)
-        {
-            if (err) {
-                console.log("Error Occured: ", err);
-                cb(err, conn);
-            } else {
-
-                result.rows.forEach(function (row) {
-
-                    parts.schedSeries.forEach(function (seriesObj) {
-                        if (seriesObj.name === row.PART_NO) {
-                            seriesObj.items[2].y = row.QTY;
-                            seriesObj.items[2].label = row.QTY;
-                        }
-                    });
-
-                });
-
-
-                cb(null, conn);
-            }
-
-        });
-
-    }
-
-
-    function getStock(conn, cb) {
-        console.log("Getting Stock Count");
-
-        let selectStatement = `SELECT A.PART_NO,
-	                              SUM(A.QTY) as QTY 
-		                 FROM BINS_T A , 
-		                      PARTS_T B,
-			              LOCATIONS_T C 
-	                        WHERE B.PART_GRP='${partGrp}' 
-	                          AND A.STATUS <> 'Dispatched'
-		                  AND C.TYPE='Warehouse' 
-		                  AND A.PART_NO=B.PART_NO 
-		                  AND A.FROM_LOC = C.LOC_ID 
-		             GROUP BY A.PART_NO`;
-        console.log(selectStatement);
-
-        let bindVars = [];
-
-        conn.execute(selectStatement
-                , bindVars, {
-                    outFormat: oracledb.OBJECT, // Return the result as Object
-                    autoCommit: true// Override the default non-autocommit behavior
-                }, function (err, result)
-        {
-            if (err) {
-                console.log("Error Occured: ", err);
-                cb(err, conn);
-            } else {
-
-                result.rows.forEach(function (row) {
-
-                    parts.schedSeries.forEach(function (seriesObj) {
-                        if (seriesObj.name === row.PART_NO) {
-                            seriesObj.items[3].y = row.QTY;
-                            seriesObj.items[3].label = row.QTY;
-                        }
-                    });
-
-                });
-
-
-                cb(null, conn);
-            }
-
-        });
-
-    }
-
-
-    function getDispatched(conn, cb) {
-        console.log("Getting Dispatched Counts");
-
-        let selectStatement = `SELECT A.PART_NO,
-	                              SUM(A.QTY) AS QTY 
-	                         FROM EVENTS_T A , 
-	                              PARTS_T B,
-		                      LOCATIONS_T C 
-                                WHERE A.EVENT_TYPE='Invoice' 
-	                          AND A.EVENT_NAME='Dispatched' 
-	                          AND B.PART_GRP='${partGrp}' 
-	                          AND A.PART_NO=B.PART_NO 
-	                          AND TRUNC(A.EVENT_DATE) = trunc(SYSDATE) 
-	                          AND A.FROM_LOC = C.LOC_ID 
-	                          AND C.TYPE='Warehouse'
-	                     GROUP BY A.PART_NO`;
+//         let selectStatement = `SELECT PART_NO,QTY SCHED_QTY,0 WIP_QTY,0 ASN_QTY,0 WH_QTY,0 DISP_QTY from SCHED_T
+//                                 where 1=1
+//                                   and PART_GRP='${partGrp}'
+//                                   and SCHED_DT BETWEEN ${dateCrit}
+//                                   AND PART_NO is not null`;
         
+        
+              let selectStatement = `WITH SCHED_TBL AS(
+                                                  SELECT PART_NO,QTY,WIP_QTY,SCHED_DT
+                                                    FROM SCHED_T 
+						   WHERE PART_GRP='${partGrp}'
+                                                     AND SCHED_DT BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 QTY,0 WIP_QTY,SYSDATE FROM DUAL),
+                                        ASN_TBL AS(
+                                                  SELECT PART_NO,NVL(QTY,0) QTY 
+						    FROM ASN_T 
+						   WHERE PART_GRP='${partGrp}'
+                                                     AND ASN_DATE BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 QTY FROM DUAL ),
+                                         INV_TBL AS(
+                                                  SELECT IL.PART_NO,DECODE(IH.STATUS,'Dispatched',0,'Reached',0,IL.QTY) WH_QTY,DECODE(IH.STATUS,'Dispatched',IL.QTY,'Reached',IL.QTY,0) DISP_QTY
+                                                    FROM INV_HDR_T IH,INV_LINE_T IL,LOCATIONS_T L 
+                                                   WHERE IH.PART_GRP='${partGrp}'
+                                                     AND IH.INVOICE_NUM=IL.INVOICE_NUM
+                                                     AND IH.FROM_LOC=L.LOC_ID
+                                                     AND L.TYPE='Warehouse'
+                                                     AND STATUS_DT BETWEEN ${dateCrit}
+                                                   UNION
+                                                  SELECT NULL PART_NO,0 WH_QTY,0 DISP_QTY FROM DUAL
+                                                     )
+                                              SELECT SCHED_TBL.PART_NO PART_NO,SCHED_TBL.QTY SCHED_QTY,SCHED_TBL.WIP_QTY WIP_QTY,ASN_TBL.QTY ASN_QTY,INV_TBL.WH_QTY WH_QTY,INV_TBL.DISP_QTY DISP_QTY 
+						FROM SCHED_TBL,ASN_TBL,INV_TBL
+                                               WHERE SCHED_TBL.PART_NO=ASN_TBL.PART_NO(+)
+                                                 AND SCHED_TBL.PART_NO=INV_TBL.PART_NO(+)
+                                                 AND SCHED_TBL.PART_NO IS NOT NULL
+                                                 AND (SCHED_TBL.SCHED_QTY + SCHED_TBL.WIP_QTY + ASN_TBL.ASN_QTY + INV_TBL.WH_QTY + INV_TBL.DISP_QTY)<>0`;          
         
         console.log(selectStatement);
 
         let bindVars = [];
-
-        conn.execute(selectStatement
-                , bindVars, {
-                    outFormat: oracledb.OBJECT, // Return the result as Object
-                    autoCommit: true// Override the default non-autocommit behavior
-                }, function (err, result)
-        {
-            if (err) {
-                console.log("Error Occured: ", err);
-                cb(err, conn);
-            } else {
-
-                result.rows.forEach(function (row) {
-
-                    parts.schedSeries.forEach(function (seriesObj) {
-                        if (seriesObj.name === row.PART_NO) {
-                            seriesObj.items[4].y = row.QTY;
-                            seriesObj.items[4].label = row.QTY;
-                        }
-                    });
-
-                });
-
-
-                cb(null, conn);
-            }
-
-        });
-
+        op.singleSQL(selectStatement, bindVars, req, res);
     }
 
-    function getCounts(conn, cb) {
-        console.log("Getting Counts");
-
-        let selectStatement = `SELECT COUNT(PART_NO) AS PARTCOUNT,
-	                              SUM(QTY) AS PARTQTY 
-	                         FROM SCHED_T
-                                WHERE PART_GRP='${partGrp}' 
-	                          AND SCHED_DT BETWEEN ${dateCrit}`;
-
-        console.log(selectStatement);
-
-        let bindVars = [];
-
-        conn.execute(selectStatement
-                , bindVars, {
-                    outFormat: oracledb.OBJECT, // Return the result as Object
-                    autoCommit: true// Override the default non-autocommit behavior
-                }, function (err, result)
-        {
-            if (err) {
-                console.log("Error Occured: ", err);
-                cb(err, conn);
-            } else {
-
-                result.rows.forEach(function (row) {
-                    parts.partCount = row.PARTCOUNT;
-                    parts.partQty = row.PARTQTY;
-                });
-
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                res.end(JSON.stringify(parts));
-                cb(null, conn);
-            }
-
-        });
-
-    }
+    
+//   
+//    function getCounts(conn, cb) {
+//        console.log("Getting Counts");
+//
+//        let selectStatement = `SELECT COUNT(PART_NO) AS PARTCOUNT,
+//	                              SUM(QTY) AS PARTQTY 
+//	                         FROM SCHED_T
+//                                WHERE PART_GRP='${partGrp}' 
+//	                          AND SCHED_DT BETWEEN ${dateCrit}`;
+//
+//        console.log(selectStatement);
+//
+//        let bindVars = [];
+//
+//        conn.execute(selectStatement
+//                , bindVars, {
+//                    outFormat: oracledb.OBJECT, // Return the result as Object
+//                    autoCommit: true// Override the default non-autocommit behavior
+//                }, function (err, result)
+//        {
+//            if (err) {
+//                console.log("Error Occured: ", err);
+//                cb(err, conn);
+//            } else {
+//
+//                result.rows.forEach(function (row) {
+//                    parts.partCount = row.PARTCOUNT;
+//                    parts.partQty = row.PARTQTY;
+//                });
+//
+//                res.writeHead(200, {'Content-Type': 'application/json'});
+//                res.end(JSON.stringify(parts));
+//                cb(null, conn);
+//            }
+//
+//        });
+//
+//    }
 
     async.waterfall(
             [doConnect,
-                getHdr,
-                getASN,
-                getStock,
-                getDispatched,
-                getCounts
+                getHdr
+              //  getCounts
             ],
             function (err, conn) {
                 if (err) {

@@ -26,8 +26,9 @@ function getData(req, res) {
     var locId = (req.query.locId || '%') + '%';
     var desc = (req.query.desc || '%') + '%';
     var type = (req.query.type || '%') + '%';
+    var closeStatus = (req.query.closeStatus || '%') + '%';
 
-    var sqlStatement = `SELECT * FROM LOCATIONS_T WHERE LOC_ID LIKE '${locId}' AND DESCRIPTION LIKE '${desc}' AND TYPE LIKE '${type}'`;
+    var sqlStatement = `SELECT * FROM LOCATIONS_T WHERE LOC_ID LIKE '${locId}' AND CLOSE_STATUS LIKE '${closeStatus}' AND DESCRIPTION LIKE '${desc}' AND TYPE LIKE '${type}'`;
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }

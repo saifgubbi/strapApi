@@ -3,83 +3,51 @@ var router = express.Router();
 var op = require('../../../../oracleDBOps');
 var async = require('async');
 
-router.get('/lr', function (req, res) {
-    getPendingLR(req, res);
+router.post('/', function (req, res) {
+    partsAssign(req, res);
 });
 
-router.get('/lrObj', function (req, res) {
-    getLRObjects(req, res);
+router.get('/', function (req, res) {
+    getInvPallet(req, res);
 });
 
-router.post('/lrObj', function (req, res) {
-    dispatchObj(req, res);
+router.get('/parts', function (req, res) {
+    getInvParts(req, res);
+});
+
+router.get('/id', function (req, res) {
+    getId(req, res);
+
 });
 
 module.exports = router;
 
 
-function getPendingLR(req, res) {
-    var locId = req.query.locId;
-    var partGrp = req.query.partGrp;
-
-    var sqlStatement = `SELECT DISTINCT LR_NO FROM INV_HDR_T WHERE STATUS='LR Assigned' AND PART_GRP = '${partGrp}' AND FROM_LOC='${locId}'`;
-    var bindVars = [];
-
-    op.singleSQL(sqlStatement, bindVars, req, res);
-}
-
-
-function getLRObjects(req, res) {
-    var lr = req.query.lr;
-    var partGrp = req.query.partGrp;
-
-    var sqlStatement = `(SELECT A.BIN_ID AS OBJ_ID,A.QTY,A.PART_NO,'Bin' as OBJ_TYPE,B.INVOICE_NUM FROM BINS_T A,INV_HDR_T B WHERE A.INVOICE_NUM=B.INVOICE_NUM AND A.PART_GRP=B.PART_GRP AND B.LR_NO='${lr}' AND B.PART_GRP = '${partGrp}' AND PALLET_ID is NULL) UNION (SELECT A.PALLET_ID AS OBJ_ID,A.QTY,A.PART_NO,'Pallet' as OBJ_TYPE,B.INVOICE_NUM FROM PALLETS_T A,INV_HDR_T B WHERE A.INVOICE_NUM=B.INVOICE_NUM AND A.PART_GRP=B.PART_GRP AND B.LR_NO='${lr}' AND B.PART_GRP = '${partGrp}')`;
-    var bindVars = [];
-    
-    console.log(sqlStatement);
-
-    op.singleSQL(sqlStatement, bindVars, req, res);
-}
-
-
-function dispatchObj(req, res) {
-
+function partsAssign(req, res) {
+    let invId = req.body.id;
     let partGrp = req.body.partGrp;
     let userId = req.body.userId;
     let locId = req.body.locId;
-    let lr = req.body.lr;
-
+    let partNo = req.body.partNo;
+    let qty = req.body.qty;
 
     let ts = new Date().getTime();
-        let invArr = [];
 
     let bindArr = [];
 
     /*Insert Pallet SQL*/
 
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
+    let bindVars = [invId, 'Invoice', 'Parts Assigned', new Date(), locId, null, null, partNo, qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
 
-    /*Insert Object (bin,pallets as dispatched)*/
+    bindArr.push(bindVars);
+
     req.body.objArray.forEach(function (obj) {
-        let binVars = [obj.objId, obj.type, 'Dispatched', new Date(), locId, null, '', obj.partNo, obj.qty || 0, obj.invId, userId, null, 0, ts, null, null, partGrp, lr, null, null];
-        if (invArr.indexOf() < 0) {
-            invArr.push(obj.invId);
-        }
+        let binVars = [obj.objId, obj.type, 'Invoiced', new Date(), locId, null, obj.objLbl, obj.objPart, obj.objQty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
         bindArr.push(binVars);
     });
-
-    /*Insert Unique Invoices with Dispatched Status*/
-    invArr.forEach(function (invID) {
-       // let binVars = [invID, 'Invoice', 'Dispatched', new Date(), locId, null, '', '', 0, invID, userId, null, 0, ts, null, null, partGrp, lr, null, null];
-        let binVars = [invID, 'Invoice', 'Dispatched', new Date(), locId, null, '', '', 0, invID, userId, null, 0, ts, null, null, partGrp, lr, null, null];
-        bindArr.push(binVars);
-    });
-
     insertEvents(req, res, sqlStatement, bindArr);
-
 }
-
-
 
 function insertEvents(req, res, sqlStatement, bindArr) {
 
@@ -144,4 +112,46 @@ function insertEvents(req, res, sqlStatement, bindArr) {
                 if (conn)
                     conn.close();
             });
+}
+
+
+function getId(req, res) {
+    var pickList = req.query.pickList;
+    var objType = req.query.type;
+    var partGrp = req.query.partGrp;
+    var sqlStatement;
+
+
+    if (objType === 'Bin') {
+        sqlStatement = `SELECT BIN_ID AS "objId" , PART_NO as "partNo",QTY as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}'`;
+    } 
+//    else {
+//        sqlStatement = `SELECT PALLET_ID AS "objId", PART_NO as "partNo",QTY as "qty" FROM PALLETS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' AND ROWNUM=1`;
+//    }
+    console.log(sqlStatement);
+    var bindVars = [];
+    op.singleSQL(sqlStatement, bindVars, req, res);
+}
+
+
+function getInvPallet(req, res) {
+
+    var invId = req.query.invId;
+    var partGrp = req.query.partGrp;
+    var sqlStatement = `SELECT EVENT_ID,LABEL,PART_NO,QTY FROM EVENTS_T WHERE EVENT_NAME='Invoiced' AND PART_GRP='${partGrp}' and INVOICE_NUM='${invId}'`;
+    var bindVars = [];
+    op.singleSQL(sqlStatement, bindVars, req, res);
+
+}
+
+
+
+function getInvParts(req, res) {
+
+    var invId = req.query.invId;
+    var partGrp = req.query.partGrp;
+    var sqlStatement = `SELECT B.PART_NO AS PART_NO,B.QTY AS COUNT FROM INV_HDR_T A,INV_LINE_T B WHERE A.INVOICE_NUM=B.INVOICE_NUM AND A.INVOICE_NUM='${invId}' and A.PART_GRP='${partGrp}'`;
+    var bindVars = [];
+    op.singleSQL(sqlStatement, bindVars, req, res);
+
 }

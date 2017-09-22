@@ -22,7 +22,7 @@ function getPendingLR(req, res) {
     var locId = req.query.locId;
     var partGrp = req.query.partGrp;
 
-    var sqlStatement = `SELECT LR_NO,DEVICE_ID,COUNT(*),FROM_LOC,TO_LOC FROM INV_HDR_T WHERE STATUS='Dispatched' AND PART_GRP = '${partGrp}' AND TO_LOC='${locId}' GROUP BY LR_NO,DEVICE_ID,FROM_LOC,TO_LOC`;
+    var sqlStatement = `SELECT LR_NO,DEVICE_ID,COUNT(*) COUNT,FROM_LOC,TO_LOC FROM INV_HDR_T WHERE STATUS='Dispatched' AND PART_GRP = '${partGrp}' AND TO_LOC='${locId}' GROUP BY LR_NO,DEVICE_ID,FROM_LOC,TO_LOC`;
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
