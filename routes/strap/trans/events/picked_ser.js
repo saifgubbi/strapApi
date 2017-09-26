@@ -18,6 +18,11 @@ router.post('/', function (req, res) {
 
 });
 
+router.get('/serialized', function (req, res) {
+    getSerialized(req, res);
+});
+
+
 module.exports = router;
 
 
@@ -134,8 +139,18 @@ function getOldBin(req, res) {
 function getSerial(req, res) {
     let partGrp = req.query.partGrp;
     let oldBin = req.query.id;
+    console.log('Fetch Serial');
 
-    let sqlStatement = `SELECT A.PART_NO,A.SERIAL_NUM FROM SERIAL_T A,BINS_T B WHERE B.BIN_ID='${oldBin}' AND B.PART_GRP='${partGrp}' AND B.LABEL=A.BIN_LABEL AND B.PART_GRP=A.PART_GRP`;
+    let sqlStatement = `SELECT A.SERIAL_NUM FROM SERIAL_T A,BINS_T B WHERE B.BIN_ID='${oldBin}' AND B.PART_GRP='${partGrp}' AND B.LABEL=A.BIN_LABEL AND B.PART_GRP=A.PART_GRP`;
+    var bindVars = [];
+
+    op.singleSQL(sqlStatement, bindVars, req, res);
+}
+
+function getSerialized(req, res) {
+    let partNo =req.query.partNo;
+
+    let sqlStatement = `SELECT NVL(SERIALIZED,'N') SERIALIZED FROM PARTS_T P WHERE P.PART_NO='${partNo}'`;
     var bindVars = [];
 
     op.singleSQL(sqlStatement, bindVars, req, res);

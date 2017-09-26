@@ -79,8 +79,10 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             //console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO PARTS_T VALUES (:1,:2,:3,:4,:5,:6) ";
-            let bindVars = [data.PART_GRP, data.PART_NO, data.CUST_PART_NO, data.VARIANT, data.PARTS_TYPE, data.SERIALIZED];
+            let insertStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(:3)-16),:4,:5,:6,:7,:8)";
+            let bindVars = [data.PART_GRP, data.PART_NO,data.PART_NO, data.CUST_PART_NO, data.VARIANT, data.PARTS_TYPE, data.SERIALIZED,data.PART_NO];
+//            var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(:3)-16),:4,:5,:6,:7,:8)";
+//           var bindVars = [req.body.partGrp, req.body.partNo,req.body.partNo, req.body.custPartNo, req.body.variant, req.body.partsType,req.body.serialized,req.body.partNo];
            console.log("Inserting :",bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {

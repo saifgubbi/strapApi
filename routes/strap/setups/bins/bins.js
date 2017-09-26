@@ -58,8 +58,8 @@ function getData(req, res) {
 
 
 function addData(req, res) {
-    var sqlStatement = "INSERT INTO BINS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13) ";
-    var bindVars = [req.body.binId, req.body.status, new Date(), req.body.locId, req.body.palletId, req.body.label, req.body.invoice, req.body.state, req.body.partNo, req.body.qty || 0, req.body.owner, req.body.seq || 0, req.body.partGrp];
+    var sqlStatement = "INSERT INTO BINS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14) ";
+    var bindVars = [req.body.binId, req.body.status, new Date(), req.body.locId, req.body.palletId, req.body.label, req.body.invoice, req.body.state, req.body.partNo, req.body.qty || 0, req.body.owner, req.body.seq || 0, req.body.partGrp,''];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

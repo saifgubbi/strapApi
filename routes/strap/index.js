@@ -45,11 +45,12 @@ router.use('/events/receive', require('./trans/events/receive'));
 router.use('/events/picked_qty', require('./trans/events/picked_qty'));
 router.use('/events/picked_ser', require('./trans/events/picked_ser'));
 router.use('/events/assignASN', require('./trans/events/assignASN'));
-
+router.use('/events/assignASN', require('./trans/events/assignASN'));
 
 
 router.use('/dashboard', require('./dashboard'));
 
+//router.use('/inquiry', require('./inquiry'));
 
 router.get('/', function (req, res) {
     res.send('Welcome to  Shipment Tracking Apis!');

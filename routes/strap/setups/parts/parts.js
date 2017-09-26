@@ -28,7 +28,7 @@ function getData(req, res) {
     var custPartNo = (req.query.custPartNo || '%') + '%';
     var variant = (req.query.variant || '%') + '%';
     var partsType = (req.query.partsType || '%') + '%';
-    var sqlStatement = `SELECT * FROM PARTS_T WHERE PART_GRP LIKE '${partGrp}' AND PART_NO LIKE '${partNo}' AND CUST_PART_NO LIKE '${custPartNo}' AND VARIANT LIKE '${variant}' AND PARTS_TYPE LIKE '${partsType}' `;
+    var sqlStatement = `SELECT * FROM PARTS_T WHERE PART_GRP LIKE '${partGrp}' AND PART_NO LIKE '${partNo}' AND NVL(CUST_PART_NO,'Y') LIKE '${custPartNo}' AND NVL(VARIANT,'Y') LIKE '${variant}' AND NVL(PARTS_TYPE,'Y') LIKE '${partsType}' `;
    console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -36,8 +36,8 @@ function getData(req, res) {
 
 
 function addData(req, res) {
-    var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,:2,:3,:4,:5,:6) ";
-    var bindVars = [req.body.partGrp, req.body.partNo, req.body.custPartNo, req.body.variant, req.body.partsType,req.body.serialized];
+    var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(:3)-16),:4,:5,:6,:7,:8)";
+    var bindVars = [req.body.partGrp, req.body.partNo,req.body.partNo, req.body.custPartNo, req.body.variant, req.body.partsType,req.body.serialized,req.body.partNo];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

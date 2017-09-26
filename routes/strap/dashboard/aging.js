@@ -46,6 +46,7 @@ function getChart(req, res) {
                                   AND B.PART_GRP = '${partGrp}' 
                              GROUP BY ROUND(SYSDATE-STATUS_DT),A.PART_NO ORDER BY 1`;
 
+
         let bindVars = [];
 
         conn.execute(selectStatement
