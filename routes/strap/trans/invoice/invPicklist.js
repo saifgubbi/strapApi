@@ -2,13 +2,14 @@ var express = require('express');
 var router = express.Router();
 var op = require('../../../../oracleDBOps');
 var async = require('async');
+var oracledb = require('oracledb');
 
 router.post('/', function (req, res) {
     partsAssign(req, res);
 });
 
 router.get('/', function (req, res) {
-    getInvPallet(req, res);
+    getInvPicklist(req, res);
 });
 
 router.get('/parts', function (req, res) {
@@ -20,6 +21,12 @@ router.get('/id', function (req, res) {
 
 });
 
+router.get('/pick', function (req, res) {
+    getPick(req, res);
+
+});
+
+
 module.exports = router;
 
 
@@ -30,20 +37,20 @@ function partsAssign(req, res) {
     let locId = req.body.locId;
     let partNo = req.body.partNo;
     let qty = req.body.qty;
-
     let ts = new Date().getTime();
-
     let bindArr = [];
 
     /*Insert Pallet SQL*/
 
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
     let bindVars = [invId, 'Invoice', 'Parts Assigned', new Date(), locId, null, null, partNo, qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
-
+    
+    console.log('Inside inv picklist');
     bindArr.push(bindVars);
-
+    console.log('Inside inv picklist');
+    
     req.body.objArray.forEach(function (obj) {
-        let binVars = [obj.objId, obj.type, 'Invoiced', new Date(), locId, null, obj.objLbl, obj.objPart, obj.objQty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+        let binVars = [obj.objId, 'Bins', 'Invoiced', new Date(), locId, null, obj.objLbl, partNo, obj.objQty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
         bindArr.push(binVars);
     });
     insertEvents(req, res, sqlStatement, bindArr);
@@ -114,31 +121,115 @@ function insertEvents(req, res, sqlStatement, bindArr) {
             });
 }
 
+function getPick(req, res) {
+    var partGrp = req.query.partGrp;
+    var pickList = req.query.pickList;
+     var pickRes ={};
+    var doConnect = function (cb) {
+        op.doConnectCB(function (err, conn) {
+            if (err)
+                throw err;
+            cb(null, conn);
+        });
+    };
+    console.log('Inside Pick');
+    function getList(conn, cb) {
+        var sqlStatement;
+  
+        sqlStatement = `SELECT COUNT(1) AS "bins" , PART_NO as "partNo",PICK_LIST as "pickList",SUM(QTY) as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' GROUP BY PART_NO,PICK_LIST order by part_no`;
+        
+        console.log(sqlStatement);
+        let bindVars = [];
+       conn.execute(sqlStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                result.rows.forEach(function (row) {
+                    pickRes = row;
+                });
+                 pickRes.binArr= [];
+                cb(null, conn);
+            }
+        });
+    }
+
+    function getBins(conn, cb) {
+        var sqlStatement;
+       // sqlStatement = `SELECT BIN_ID AS "id" ,LABEL as "label", QTY as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' GROUP BY BIN_ID,LABEL,QTY order by bin_id`;
+        sqlStatement = `SELECT BIN_ID AS "id" , QTY as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' GROUP BY BIN_ID,QTY order by bin_id`;
+     
+         console.log(sqlStatement);
+        let bindVars = [];
+       conn.execute(sqlStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                result.rows.forEach(function (row) {
+                    pickRes.binArr.push({id:row.id,qty:row.qty});
+//                    var resObj = row;
+//                    var desc = '';
+//                    desc = ((row.ID) ? "id :" + row.ID + "\n" : '')
+//                            + ((row.QTY) ? "qty :" + row.QTY + "\n" : '');
+//                            //+ ((row.LABEL) ? "label :" + row.LABEL + "\n" : '');
+//                    resObj.DESC = desc;
+//                    pckRes.bin.push(resObj);
+                 //pckRes.bin=row;
+                });
+
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify(pickRes));
+                cb(null, conn);
+            }
+        });
+    }
+    
+    async.waterfall(
+            [doConnect,
+                getList,
+                getBins
+            ],
+            function (err, conn) {
+                if (err) {
+                    console.error("In waterfall error cb: ==>", err, "<==");
+                    res.status(500).json({message: err});
+                }
+                console.log("Done Waterfall");
+                if (conn)
+                    conn.close();
+            });
+
+}
 
 function getId(req, res) {
     var pickList = req.query.pickList;
-    var objType = req.query.type;
     var partGrp = req.query.partGrp;
     var sqlStatement;
-
-
-    if (objType === 'Bin') {
-        sqlStatement = `SELECT BIN_ID AS "objId" , PART_NO as "partNo",QTY as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}'`;
-    } 
-//    else {
-//        sqlStatement = `SELECT PALLET_ID AS "objId", PART_NO as "partNo",QTY as "qty" FROM PALLETS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' AND ROWNUM=1`;
-//    }
+  
+    sqlStatement = `SELECT COUNT(1) AS "bins" , PART_NO as "partNo",PICK_LIST as "pickList",SUM(QTY) as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' GROUP BY PART_NO,PICK_LIST order by part_no`;
+     
     console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
-
-function getInvPallet(req, res) {
+function getInvPicklist(req, res) {
 
     var invId = req.query.invId;
     var partGrp = req.query.partGrp;
-    var sqlStatement = `SELECT EVENT_ID,LABEL,PART_NO,QTY FROM EVENTS_T WHERE EVENT_NAME='Invoiced' AND PART_GRP='${partGrp}' and INVOICE_NUM='${invId}'`;
+    console.log('Begin');
+    var sqlStatement = `SELECT COUNT(1) as "bins",PART_NO as "partNo",PICK_LIST as "pickList",SUM(QTY) as "qty" FROM BINS_T WHERE PART_GRP='${partGrp}' AND INVOICE_NUM='${invId}' GROUP BY PICK_LIST,PART_NO ORDER BY PART_NO`;
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 

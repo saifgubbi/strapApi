@@ -21,6 +21,7 @@ router.use('/users', require('./setups/users/users'));
 router.use('/invoiceUpload', require('./trans/invoice/invUpload'));
 router.use('/invoicePallet', require('./trans/invoice/invPallet'));
 router.use('/invoiceList', require('./trans/invoice/invList'));
+router.use('/invoicePickList', require('./trans/invoice/invPicklist'));
 router.use('/invoiceLR', require('./trans/invoice/invLR'));
 
 router.use('/asnUpload', require('./trans/asn/asnUpload'));
@@ -49,6 +50,7 @@ router.use('/events/assignASN', require('./trans/events/assignASN'));
 
 
 router.use('/dashboard', require('./dashboard'));
+router.use('/inquiry', require('./inquiry'));
 
 //router.use('/inquiry', require('./inquiry'));
 

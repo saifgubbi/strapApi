@@ -73,8 +73,8 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO SERIAL_T VALUES (TO_DATE(:1, 'dd/mm/yyyy hh:mi:ss AM'),:2,:3,:4,:5,:6,:7) ";
-            let bindVars = [data["Date"], data["Unique Part Ident. No."], data["Box Packaging No."], '', data["TTNR"] + data["Packaging Index"], partGrp, userId];
+            let insertStatement = "INSERT INTO SERIAL_T VALUES (TO_DATE(:1, 'dd/mm/yyyy hh:mi:ss AM'),:2,:3,:4,:5,:6,:7,:8) ";
+            let bindVars = [data["Date"], data["Unique Part Ident. No."], data["Box Packaging No."], '', data["TTNR"] + data["Packaging Index"], partGrp, userId,''];
             console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {

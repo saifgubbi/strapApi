@@ -150,7 +150,7 @@ function getSerial(req, res) {
 function getSerialized(req, res) {
     let partNo =req.query.partNo;
 
-    let sqlStatement = `SELECT NVL(SERIALIZED,'N') SERIALIZED FROM PARTS_T P WHERE P.PART_NO='${partNo}'`;
+    let sqlStatement = `SELECT NVL(SERIALIZED,'N') SERIALIZED FROM PARTS_T P WHERE regexp_replace(P.PART_NO, '[^[:alnum:]]', null)='${partNo}'`;
     var bindVars = [];
 
     op.singleSQL(sqlStatement, bindVars, req, res);

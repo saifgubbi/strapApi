@@ -1,6 +1,10 @@
 var express = require('express');
 var router = express.Router();
-var op = require('../../../../oracleDBOps');
+var op = require('../../../oracleDBOps');
+var moment = require('moment');
+var async = require('async');
+
+var oracledb = require('oracledb');
 
 router.get('/', function (req, res) {
     getData(req, res);

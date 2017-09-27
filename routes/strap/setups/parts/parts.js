@@ -36,7 +36,7 @@ function getData(req, res) {
 
 
 function addData(req, res) {
-    var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(:3)-16),:4,:5,:6,:7,:8)";
+    var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(regexp_replace(:3, '[^[:alnum:]]', null))-12),:4,:5,:6,:7,:8)";
     var bindVars = [req.body.partGrp, req.body.partNo,req.body.partNo, req.body.custPartNo, req.body.variant, req.body.partsType,req.body.serialized,req.body.partNo];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }

@@ -15,6 +15,10 @@ router.post('/', function (req, res) {
     addData(req, res);
 });
 
+router.put('/', function (req, res) {
+    updateData(req, res);
+});
+
 module.exports = router;
 
 function getData(req, res) {
@@ -58,3 +62,30 @@ function addData(req, res) {
             console.log("Inserting :", bindVars.join());
      op.singleSQL(sqlStatement, bindVars, req, res);
     };
+
+function updateData(req, res) {
+  //  let fromLoc =req.body.fromLoc;
+   // let
+   console.log('inside update.');
+    var sqlStatement = `UPDATE INV_HDR_T IH
+                           SET IH.FROM_LOC =:1,
+                               IH.TO_LOC =:2
+                          WHERE IH.STATUS='New'
+                            AND IH.INVOICE_NUM=:3
+                            AND IH.PART_GRP=:4`;
+    
+    var sqlStatement1 = `UPDATE INV_LINE_T IL
+                           SET  IL.PART_NO=:1,
+                                IL.QTY=:2
+                          WHERE IL.INVOICE_NUM=:3
+                            AND IL.PART_GRP=:4
+                            AND EXISTS(SELECT 1 FROM INV_HDR_T
+                                        WHERE INVOICE_NUM=IL.INVOICE_NUM
+                                          AND STATUS='New')`;
+    var bindVars = [req.body.fromLoc, req.body.toLoc,req.body.invId,req.body.partGrp];
+    var bindVars1 = [req.body.partNo,req.body.qty,req.body.invId,req.body.partGrp];
+    console.log(bindVars.join());
+    console.log(bindVars1.join());
+    op.singleSQL(sqlStatement, bindVars, req, res);
+    op.singleSQL(sqlStatement1, bindVars1, req, res);
+}

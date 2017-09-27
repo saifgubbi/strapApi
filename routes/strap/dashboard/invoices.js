@@ -14,6 +14,10 @@ router.get('/status', function (req, res) {
     getInvList(req, res);
 });
 
+router.get('/allInvoice', function (req, res) {
+    getInvAll(req, res);
+});
+
 router.get('/history', function (req, res) {
     getInvHist(req, res);
 });
@@ -101,6 +105,77 @@ function getData(req, res) {
 
 }
 
+
+function getInvAll(req, res) {
+
+    var partGrp = req.query.partGrp;
+    var locType = req.query.locType;
+
+    var doConnect = function (cb) {
+        op.doConnectCB(function (err, conn) {
+            if (err)
+                throw err;
+            cb(null, conn);
+        });
+    };
+
+    function getHdr(conn, cb) {
+        console.log("Getting List");
+
+        let selectStatement = `SELECT * 
+                                 FROM INV_HDR_T A,
+	                              INV_LINE_T B,
+		                      LOCATIONS_T L  
+                                WHERE A.INVOICE_NUM=B.INVOICE_NUM 
+	                          AND A.INV_DT=B.INV_DT 
+	                          AND PART_NO IN
+                                                 (SELECT PART_NO 
+				                    FROM PARTS_T 
+					           WHERE PART_GRP='${partGrp}'
+                                                  ) 
+	                          AND A.from_loc=L.LOC_ID 
+	                          AND L.TYPE='${locType}' 
+	                          AND A.STATUS <> L.CLOSE_STATUS`;
+        console.log(selectStatement);
+
+        let bindVars = [];
+
+        conn.execute(selectStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify(result.rows));
+                cb(null, conn);
+            }
+        });
+
+    }
+
+
+    async.waterfall(
+            [doConnect,
+                getHdr
+            ],
+            function (err, conn) {
+                if (err) {
+                    console.error("In waterfall error cb: ==>", err, "<==");
+                    res.status(500).json({message: err});
+                }
+                console.log("Done Waterfall");
+                if (conn)
+                    conn.close();
+            });
+
+
+
+}
 
 
 function getInvList(req, res) {
@@ -199,7 +274,7 @@ function getInvHist(req, res) {
         let selectStatement = `SELECT * 
                                  FROM INV_HDR_T A,
                                       INV_LINE_T B 
-                                WHERE A.INVOICE_NUM = '${invId}' 
+                                WHERE A.INVOICE_NUM = '${invId}'
                                   AND A.INVOICE_NUM=B.INVOICE_NUM 
                                   AND A.INV_DT=B.INV_DT 
                                   AND B.PART_NO IN(
