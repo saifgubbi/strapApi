@@ -23,10 +23,11 @@ router.use('/invoicePallet', require('./trans/invoice/invPallet'));
 router.use('/invoiceList', require('./trans/invoice/invList'));
 router.use('/invoicePickList', require('./trans/invoice/invPicklist'));
 router.use('/invoiceLR', require('./trans/invoice/invLR'));
+router.use('/invoiceAdd', require('./trans/invoice/invAdd'));
 
 router.use('/asnUpload', require('./trans/asn/asnUpload'));
 router.use('/asnList', require('./trans/asn/asnList'));
-
+router.use('/asnAdd', require('./trans/asn/asnAdd'));
 
 
 router.use('/schedUpload', require('./trans/sched/schedUpload'));

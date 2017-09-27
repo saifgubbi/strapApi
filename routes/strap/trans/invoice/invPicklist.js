@@ -47,12 +47,20 @@ function partsAssign(req, res) {
     
     console.log('Inside inv picklist');
     bindArr.push(bindVars);
-    console.log('Inside inv picklist');
     
     req.body.objArray.forEach(function (obj) {
-        let binVars = [obj.objId, 'Bins', 'Invoiced', new Date(), locId, null, obj.objLbl, partNo, obj.objQty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
-        bindArr.push(binVars);
+        console.log('Inside First for .. ');
+        obj.binArr.forEach(function (obj1) {
+            console.log('Inside Second for .. ');
+            let binVars = [obj1.id, 'Bins', 'Invoiced', new Date(), locId, null, obj1.objLbl, partNo, obj1.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+            bindArr.push(binVars);
+        });
     });
+//    req.body.objArray.binArr.forEach(function (obj) {
+//        console.log(obj.id);
+//        let binVars = [obj.id, 'Bins', 'Invoiced', new Date(), locId, null, obj.objLbl, partNo, obj.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+//        bindArr.push(binVars);
+//    });
     insertEvents(req, res, sqlStatement, bindArr);
 }
 

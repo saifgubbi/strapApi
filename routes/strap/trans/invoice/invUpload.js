@@ -77,8 +77,8 @@ function uploadInvoices(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
 //            console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
-            let bindVars = [data.INV_ID, 'Invoice', 'Add', new Date(), data.FROM_LOC, data.TO_LOC, '', data.PART_NO, data.QTY, data.INV_ID, req.body.userId, data.LINE, 0,  new Date().getTime(), '', '', req.body.partGrp, '', '',''];
+            let insertStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,UPPER(SUBSTR(regexp_replace(:8, '[^[:alnum:]]', null),length(regexp_replace(:9, '[^[:alnum:]]', null))-12)),:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20,:21) ";
+            let bindVars = [data.INV_ID, 'Invoice', 'Add', new Date(), data.FROM_LOC, data.TO_LOC, '', data.PART_NO,data.PART_NO, data.QTY, data.INV_ID, req.body.userId, data.LINE, 0,  new Date().getTime(), '', '', req.body.partGrp, '', '',''];
             console.log("Inserting :", bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {

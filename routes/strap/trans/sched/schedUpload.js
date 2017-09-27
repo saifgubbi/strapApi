@@ -73,7 +73,7 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO SCHED_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8) ";
+            let insertStatement = "INSERT INTO SCHED_TMP_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8) ";
             let bindVars = [data.SCHED_DT, data.SCHED_HR, data.CUST_PART_NO, '', data.WIP_QTY, data.QTY, partGrp, userId];
             console.log(bindVars.join());
             conn.execute(insertStatement
