@@ -62,7 +62,7 @@ function dispatchObj(req, res) {
     /*Insert Object (bin,pallets as dispatched)*/
     req.body.objArray.forEach(function (obj) {
         let binVars = [obj.objId, obj.type, 'Dispatched', new Date(), locId, null, '', obj.partNo, obj.qty || 0, obj.invId, userId, null, 0, ts, null, null, partGrp, lr, null, null];
-        if (invArr.indexOf() < 0) {
+        if (invArr.indexOf(obj.invId) < 0) {
             invArr.push(obj.invId);
         }
         bindArr.push(binVars);

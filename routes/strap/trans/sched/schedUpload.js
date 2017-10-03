@@ -26,6 +26,10 @@ router.get('/', function (req, res) {
     getLogs(req, res);
 });
 
+//router.delete('/', function (req, res) {
+//    removeData(req, res);
+//});
+
 module.exports = router;
 
 
@@ -65,17 +69,17 @@ function insertItems(req, res) {
     };
 
 
-    function doInsert(conn, cb) {
+    function doInsertTmp(conn, cb) {
         console.log("In  doInsert");
         var partGrp = req.body.partGrp;
         var userId = req.body.userId;
         let arrayCount = 1;
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
-            console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO SCHED_TMP_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8) ";
-            let bindVars = [data.SCHED_DT, data.SCHED_HR, data.CUST_PART_NO, '', data.WIP_QTY, data.QTY, partGrp, userId];
-            console.log(bindVars.join());
+            //console.log("Inserting :", JSON.stringify(data));
+            let insertStatement = "INSERT INTO SCHED_TMP_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9) ";
+            let bindVars = [data.SCHED_DT, data.SCHED_HR, data.CUST_PART_NO, '', data.WIP_QTY, data.QTY, partGrp, userId,data.CLOSE_STK];
+           // console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {
                         autoCommit: true// Override the default non-autocommit behavior
@@ -108,6 +112,22 @@ function insertItems(req, res) {
         }
         );
     }
+    
+   function doInsert(conn, cb) {
+    console.log('Call Insert into SCHED_T from SCHED_TMP_T');
+    conn.execute(
+    "INSERT INTO SCHED_T SELECT * FROM SCHED_TMP_T",
+      [],{autoCommit: true}, // bind value for :id
+     function(err, result)
+        {
+         if (err) { 
+             console.error(err.message); 
+            // return; 
+               } 
+            cb(null, conn);
+            console.log('Data Inserted');  // show the metadata
+         });
+    }
 
     function doUpdateLog(conn, cb) {
         let timems = new Date().getTime();
@@ -138,14 +158,48 @@ function insertItems(req, res) {
             cb(null, conn);
         });
     }
-
-
+    
+    function removeData(conn, cb) {
+    console.log('Call Remove data from sched_t');
+    conn.execute(
+    "DELETE FROM SCHED_T WHERE TRUNC(SCHED_DT) IN (SELECT DISTINCT TRUNC(SCHED_DT) FROM SCHED_TMP_T",
+      [],{autoCommit: true}, // bind value for :id
+     function(err, result)
+        {
+         if (err) { 
+             console.error(err.message); 
+            // return; 
+               } 
+            cb(null, conn);
+            console.log('Old Data Truncated');  // show the metadata
+         });
+    }
+    
+        function removeDataTmp(conn, cb) {
+    console.log('Call Remove data from SCHED_TMP_T');
+    conn.execute(
+    "DELETE FROM SCHED_TMP_T",
+      [],{autoCommit: true}, // bind value for :id
+     function(err, result)
+        {
+         if (err) { 
+             console.error(err.message); 
+            // return; 
+               } 
+            cb(null, conn);
+            console.log('Data truncated from temp');  // show the metadata
+         });
+    }
+    
 
     async.waterfall(
             [doConnect,
                 doGetFile,
-                doInsert,
-                doUpdateLog
+                doInsertTmp,
+                doUpdateLog,
+                removeData,
+                doInsert,                
+                removeDataTmp
             ],
             function (err, conn) {
                 if (err) {
@@ -157,8 +211,6 @@ function insertItems(req, res) {
                     conn.close();
             });
 }
-
-
 
 function getLogs(req, res) {
     var sqlStatement = `SELECT * FROM UPLOAD_LOG_T WHERE TYPE='SCHED' AND PART_GRP='${req.query.partGrp}' ORDER BY SEQ DESC`;

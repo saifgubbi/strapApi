@@ -26,15 +26,15 @@ function getData(req, res) {
     } else {
         dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+2)`;
     }
-        let selectStatement = `SELECT SCHED_DT,PART_NO,NVL(SCHED_QTY,0) SCHED_QTY, NVL(ASN_QTY,0) ASN_QTY, NVL(WH_QTY,0) WH_QTY,NVL(DISP_QTY,0) DISP_QTY 
+        let selectStatement = `SELECT SCHED_DT,PART_NO,NVL(SCHED_QTY,0) SCHED_QTY,NVL(WIP_QTY,0) WIP_QTY,SCHED_HR,NVL(CLOSE_STK,0) CLOSE_STK, NVL(ASN_QTY,0) ASN_QTY, NVL(WH_QTY,0) WH_QTY,NVL(DISP_QTY,0) DISP_QTY 
                                                FROM(WITH 
                                       SCHED_TBL AS(
-                                                  SELECT PART_NO,NVL(QTY,0)QTY,SCHED_DT
+                                                  SELECT PART_NO,NVL(QTY,0)QTY,NVL(WIP_QTY,0)WIP_QTY,SCHED_DT,SCHED_HR,CLOSE_STK
                                                     FROM SCHED_T 
 						   WHERE PART_GRP='${partGrp}'
                                                      AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
                                                    UNION
-                                                  SELECT NULL PART_NO,0 QTY,SYSDATE FROM DUAL),
+                                                  SELECT NULL PART_NO,0 QTY,0 WIP_QTY,SYSDATE SCHED_DT,0 SCHED_HR,NULL CLOSE_STK FROM DUAL),
                                         ASN_TBL AS(
                                                   SELECT PART_NO,NVL(QTY,0) QTY 
 						    FROM ASN_T 
@@ -53,7 +53,7 @@ function getData(req, res) {
                                                    UNION
                                                   SELECT NULL PART_NO,0 WH_QTY,0 DISP_QTY FROM DUAL
                                                      )
-                                              SELECT SCHED_TBL.SCHED_DT SCHED_DT,SCHED_TBL.PART_NO PART_NO,NVL(SCHED_TBL.QTY,0) SCHED_QTY, NVL(ASN_TBL.QTY,0) ASN_QTY, NVL(INV_TBL.WH_QTY,0) WH_QTY,NVL(INV_TBL.DISP_QTY,0) DISP_QTY 
+                                              SELECT SCHED_TBL.SCHED_DT SCHED_DT,SCHED_TBL.PART_NO PART_NO,NVL(SCHED_TBL.QTY,0) SCHED_QTY,NVL(SCHED_TBL.WIP_QTY,0) WIP_QTY, SCHED_TBL.SCHED_HR SCHED_HR,SCHED_TBL.CLOSE_STK CLOSE_STK, NVL(ASN_TBL.QTY,0) ASN_QTY, NVL(INV_TBL.WH_QTY,0) WH_QTY,NVL(INV_TBL.DISP_QTY,0) DISP_QTY   
 						FROM SCHED_TBL,ASN_TBL,INV_TBL
                                                WHERE SCHED_TBL.PART_NO=ASN_TBL.PART_NO(+)
                                                  AND SCHED_TBL.PART_NO=INV_TBL.PART_NO(+)
@@ -77,16 +77,16 @@ function getPart(req, res) {
     } else {
         dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+2)`;
     }
-              let selectStatement = `SELECT SCHED_DT,PART_NO,NVL(SCHED_QTY,0) SCHED_QTY, NVL(ASN_QTY,0) ASN_QTY, NVL(WH_QTY,0) WH_QTY,NVL(DISP_QTY,0) DISP_QTY 
+              let selectStatement = `SELECT SCHED_DT,PART_NO,NVL(SCHED_QTY,0) SCHED_QTY,NVL(WIP_QTY,0) WIP_QTY,SCHED_HR,NVL(CLOSE_STK,0) CLOSE_STK, NVL(ASN_QTY,0) ASN_QTY, NVL(WH_QTY,0) WH_QTY,NVL(DISP_QTY,0) DISP_QTY
                                                FROM(WITH 
                                       SCHED_TBL AS(
-                                                  SELECT PART_NO,NVL(QTY,0)QTY,SCHED_DT
+                                                  SELECT PART_NO,NVL(QTY,0)QTY,NVL(WIP_QTY,0)WIP_QTY,SCHED_DT,SCHED_HR,CLOSE_STK
                                                     FROM SCHED_T 
 						   WHERE PART_GRP='${partGrp}'
                                                      AND PART_NO ='${partNo}'
                                                      AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
                                                    UNION
-                                                  SELECT NULL PART_NO,0 QTY,SYSDATE FROM DUAL),
+                                                  SELECT NULL PART_NO,0 QTY,0 WIP_QTY,SYSDATE SCHED_DT,0 SCHED_HR,NULL CLOSE_STK FROM DUAL),
                                         ASN_TBL AS(
                                                   SELECT PART_NO,NVL(QTY,0) QTY 
 						    FROM ASN_T 
@@ -107,7 +107,7 @@ function getPart(req, res) {
                                                    UNION
                                                   SELECT NULL PART_NO,0 WH_QTY,0 DISP_QTY FROM DUAL
                                                      )
-                                              SELECT SCHED_TBL.SCHED_DT SCHED_DT,SCHED_TBL.PART_NO PART_NO,NVL(SCHED_TBL.QTY,0) SCHED_QTY, NVL(ASN_TBL.QTY,0) ASN_QTY, NVL(INV_TBL.WH_QTY,0) WH_QTY,NVL(INV_TBL.DISP_QTY,0) DISP_QTY 
+                                              SELECT SCHED_TBL.SCHED_DT SCHED_DT,SCHED_TBL.PART_NO PART_NO,NVL(SCHED_TBL.QTY,0) SCHED_QTY,NVL(SCHED_TBL.WIP_QTY,0) WIP_QTY, SCHED_TBL.SCHED_HR SCHED_HR,SCHED_TBL.CLOSE_STK CLOSE_STK, NVL(ASN_TBL.QTY,0) ASN_QTY, NVL(INV_TBL.WH_QTY,0) WH_QTY,NVL(INV_TBL.DISP_QTY,0) DISP_QTY 
 						FROM SCHED_TBL,ASN_TBL,INV_TBL
                                                WHERE SCHED_TBL.PART_NO=ASN_TBL.PART_NO(+)
                                                  AND SCHED_TBL.PART_NO=INV_TBL.PART_NO(+)

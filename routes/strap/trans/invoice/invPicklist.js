@@ -52,7 +52,7 @@ function partsAssign(req, res) {
         console.log('Inside First for .. ');
         obj.binArr.forEach(function (obj1) {
             console.log('Inside Second for .. ');
-            let binVars = [obj1.id, 'Bins', 'Invoiced', new Date(), locId, null, obj1.objLbl, partNo, obj1.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+            let binVars = [obj1.id, 'Bin', 'Invoiced', new Date(), locId, null, obj1.objLbl, partNo, obj1.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
             bindArr.push(binVars);
         });
     });

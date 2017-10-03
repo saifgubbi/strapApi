@@ -33,8 +33,10 @@ function getChart(req, res) {
 
     function getHdr(conn, cb) {
 
-        let selectStatement = `SELECT CASE WHEN AGE< 7 THEN 1 
-                                           WHEN AGE>7 and AGE <14 THEN 2 
+        let selectStatement = `SELECT AGE,PART_NO,SUM(QTY) QTY
+                                FROM(
+                                     SELECT CASE WHEN AGE< 7 THEN 1 
+                                              WHEN AGE>7 and AGE <14 THEN 2 
                                            WHEN AGE>14 and AGE <21 THEN 3 
                                            WHEN AGE>21 and AGE <28 THEN 4 
                                            WHEN AGE>28 and AGE <35 THEN 5 
@@ -43,7 +45,7 @@ function getChart(req, res) {
                                            WHEN AGE>49 and AGE <56 THEN 8
                                            WHEN AGE>56 and AGE <63 THEN 9
                                            WHEN AGE>63 THEN 10
-                                       END AGE,
+                                       END AGE, AGE as age1,
                                        PART_NO,QTY
                           FROM(SELECT ROUND(SYSDATE-STATUS_DT) AS AGE,
                                       A.PART_NO,
@@ -53,10 +55,12 @@ function getChart(req, res) {
                                       LOCATIONS_T C 
                                 WHERE QTY<>0 
                                   AND A.FROM_LOC=C.LOC_ID 
-                                  AND C.TYPE='Warehouse' 
+                                  AND C.TYPE= '${locType}' 
                                   AND A.PART_NO=B.PART_NO 
-                                  AND B.PART_GRP = '${partGrp}' 
-                             GROUP BY ROUND(SYSDATE-STATUS_DT),A.PART_NO ORDER BY 1)`;
+                                  AND B.PART_GRP = '${partGrp}'
+                             GROUP BY ROUND(SYSDATE-STATUS_DT),A.PART_NO ORDER BY 1)
+                                  )
+                             GROUP BY AGE,PART_NO`;
 
 
         let bindVars = [];
