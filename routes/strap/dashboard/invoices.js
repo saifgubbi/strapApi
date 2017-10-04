@@ -258,6 +258,7 @@ function getInvHist(req, res) {
     var partGrp = req.query.partGrp;
     var invId = req.query.invId;
     var invDt = moment(req.query.invDt).format("DD-MMM-YYYY");
+    var role = req.query.role;
     var invRes = {inv: {}, events: []};
 
     var doConnect = function (cb) {
@@ -270,18 +271,25 @@ function getInvHist(req, res) {
 
     function getHdr(conn, cb) {
         console.log("Getting List");
-
         let selectStatement = `SELECT * 
                                  FROM INV_HDR_T A,
-                                      INV_LINE_T B 
+                                      INV_LINE_T B,
+		                      LOCATIONS_T L,
+                                      USERS_T U 
                                 WHERE A.INVOICE_NUM = '${invId}'
                                   AND A.INVOICE_NUM=B.INVOICE_NUM 
                                   AND A.INV_DT=B.INV_DT 
+                                  AND A.from_loc=L.LOC_ID 
                                   AND B.PART_NO IN(
                                                    SELECT PART_NO 
 				                     FROM PARTS_T 
 					            WHERE PART_GRP='${partGrp}'
-					           )`;
+					           )
+                                  AND ((U.ROLE <>'Admin'
+                                  AND L.LOC_ID=U.LOC_ID)
+                                  OR (U.ROLE = 'Admin'))
+                                  AND U.ROLE='${role}'`;
+
         console.log(selectStatement);
 
         let bindVars = [];
@@ -310,9 +318,14 @@ function getInvHist(req, res) {
         console.log("Getting List");
 
         let selectStatement = `SELECT * 
-                                 FROM EVENTS_T A 
+                                 FROM EVENTS_T A,LOCATIONS_T L,USERS_T U
                                 WHERE EVENT_TYPE = 'Invoice' 
                                   AND EVENT_ID='${invId}' 
+                                  AND A.from_loc=L.LOC_ID 
+                                  AND ((U.ROLE <>'Admin'
+                                  AND L.LOC_ID=U.LOC_ID)
+                                  OR (U.ROLE = 'Admin'))
+                                  AND U.ROLE='${role}'
                              ORDER BY EVENT_TS DESC`;
         console.log(selectStatement);
 

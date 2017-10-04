@@ -5,6 +5,7 @@ var fs = require('fs');
 var multer = require('multer');
 var path = 'uploads/sched';
 var async = require('async');
+var oracledb = require('oracledb');
 
 var csv = require('csv-parser');
 var storage = multer.diskStorage({
@@ -113,22 +114,6 @@ function insertItems(req, res) {
         );
     }
     
-   function doInsert(conn, cb) {
-    console.log('Call Insert into SCHED_T from SCHED_TMP_T');
-    conn.execute(
-    "INSERT INTO SCHED_T SELECT * FROM SCHED_TMP_T",
-      [],{autoCommit: true}, // bind value for :id
-     function(err, result)
-        {
-         if (err) { 
-             console.error(err.message); 
-            // return; 
-               } 
-            cb(null, conn);
-            console.log('Data Inserted');  // show the metadata
-         });
-    }
-
     function doUpdateLog(conn, cb) {
         let timems = new Date().getTime();
         let insertLog = 'INSERT INTO UPLOAD_LOG_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11)';
@@ -159,48 +144,30 @@ function insertItems(req, res) {
         });
     }
     
-    function removeData(conn, cb) {
-    console.log('Call Remove data from sched_t');
-    conn.execute(
-    "DELETE FROM SCHED_T WHERE TRUNC(SCHED_DT) IN (SELECT DISTINCT TRUNC(SCHED_DT) FROM SCHED_TMP_T",
-      [],{autoCommit: true}, // bind value for :id
-     function(err, result)
-        {
-         if (err) { 
-             console.error(err.message); 
-            // return; 
-               } 
-            cb(null, conn);
-            console.log('Old Data Truncated');  // show the metadata
-         });
-    }
-    
-        function removeDataTmp(conn, cb) {
-    console.log('Call Remove data from SCHED_TMP_T');
-    conn.execute(
-    "DELETE FROM SCHED_TMP_T",
-      [],{autoCommit: true}, // bind value for :id
-     function(err, result)
-        {
-         if (err) { 
-             console.error(err.message); 
-            // return; 
-               } 
-            cb(null, conn);
-            console.log('Data truncated from temp');  // show the metadata
-         });
-    }
-    
 
+       function doUpload(conn, cb) {
+       console.log('Call Function to Load and Delete Data');
+       var bindvars = {  ret:  { dir: oracledb.BIND_OUT, type: oracledb.NUMBER, maxSize: 10 }};
+      conn.execute(
+                    "BEGIN :ret := LOAD_SCHED_F; END;",
+                     bindvars,{autoCommit: true},
+                     function(err, result)
+                    {
+                    if (err) { 
+                              console.error(err.message); 
+                              // return; 
+                              } 
+                    cb(null, conn);
+                          console.log('Old Data Truncated');  // show the metadata
+                    });
+    }
     async.waterfall(
-            [doConnect,
+               [doConnect,
                 doGetFile,
                 doInsertTmp,
                 doUpdateLog,
-                removeData,
-                doInsert,                
-                removeDataTmp
-            ],
+                doUpload
+               ],
             function (err, conn) {
                 if (err) {
                     console.error("In waterfall error cb: ==>", err, "<==");

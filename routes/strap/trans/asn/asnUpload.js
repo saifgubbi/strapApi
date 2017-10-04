@@ -73,7 +73,7 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             let insertStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
-            let bindVars = [data.INVOICE_NUM, 'Invoice', 'ASN Assigned', data.ASN_DATE,'', '', '', data.CUST_PART_NO, data.QTY, data.INVOICE_NUM, req.body.userId, data.ASN_LINE, 0, new Date().getTime(), '', data.ASN_ID, req.body.partGrp, '', '',''];
+            let bindVars = [data.INVOICE_NUM, 'Invoice', 'ASN Assigned', data.ASN_DATE,req.body.locId, '', '', data.CUST_PART_NO, data.QTY, data.INVOICE_NUM, req.body.userId, data.ASN_LINE, 0, new Date().getTime(), '', data.ASN_ID, req.body.partGrp, '', '',''];
             console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {

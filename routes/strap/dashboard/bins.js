@@ -30,6 +30,7 @@ function getData(req, res) {
     var partGrp = req.query.partGrp;
     var option = req.query.option;
     var owner = req.query.owner;
+    var role = req.query.role;
     var bins = {binsSeries: [], binsGroups: [], binLocCount: []};
 
 
@@ -45,15 +46,30 @@ function getData(req, res) {
     function getHdr(conn, cb) {
         console.log("Getting Header");
 
-        let selectStatement = `SELECT A.STATUS,
-                                      A.FROM_LOC,
-                                      B.DESCRIPTION,
-                                      COUNT(*) AS COUNT 
-                                 FROM ${option} A ,
-                                      LOCATIONS_T B 
-                                WHERE A.FROM_LOC=B.LOC_ID 
-                                  AND OWNER='${owner}'
+        let selectStatement = ` SELECT A.STATUS,
+                                       A.FROM_LOC,
+                                       B.DESCRIPTION,
+                                       COUNT(*) AS COUNT 
+                                  FROM ${option} A ,
+                                       LOCATIONS_T B,
+                                       USERS_T U
+                                 WHERE A.FROM_LOC=B.LOC_ID 
+                                   AND OWNER='${owner}'
+                                   AND ((U.ROLE <>'Admin'
+                                         AND B.LOC_ID=U.LOC_ID)
+                                        OR (U.ROLE = 'Admin'))
+                                  AND U.ROLE='${role}'
                                 GROUP BY B.DESCRIPTION,A.STATUS,A.FROM_LOC`;
+        
+//                let selectStatement = `SELECT A.STATUS,
+//                                      A.FROM_LOC,
+//                                      B.DESCRIPTION,
+//                                      COUNT(*) AS COUNT 
+//                                 FROM ${option} A ,
+//                                      LOCATIONS_T B 
+//                                WHERE A.FROM_LOC=B.LOC_ID 
+//                                  AND OWNER='${owner}'
+//                                GROUP BY B.DESCRIPTION,A.STATUS,A.FROM_LOC`;
 
         console.log(selectStatement);
 

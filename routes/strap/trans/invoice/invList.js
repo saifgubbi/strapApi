@@ -50,9 +50,10 @@ function removeInv(req, res) {
     let invId = req.query.invId;
     let partGrp = req.query.partGrp;
     let userId = req.query.userId;
+     let locId = req.query.locId;
     let ts = new Date().getTime();
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
-    let bindVars = [invId, 'Invoice', 'Delete', new Date(), '', '', '', '', '', invId, userId, '', 0, ts, '', '', partGrp, '', '',''];
+    let bindVars = [invId, 'Invoice', 'Delete', new Date(), locId, '', '', '', '', invId, userId, '', 0, ts, '', '', partGrp, '', '',''];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
