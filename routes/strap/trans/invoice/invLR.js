@@ -20,6 +20,7 @@ function updateLR(req, res) {
     var locId = req.body.locId;
     var userId = req.body.userId;
     var partGrp = req.body.partGrp;
+    var partGrp = req.body.partGrp;
     var lr = req.body.lr;
     var deviceId = req.body.deviceId;
     let ts = new Date().getTime();

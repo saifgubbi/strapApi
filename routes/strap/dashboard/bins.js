@@ -60,17 +60,7 @@ function getData(req, res) {
                                         OR (U.ROLE = 'Admin'))
                                   AND U.ROLE='${role}'
                                 GROUP BY B.DESCRIPTION,A.STATUS,A.FROM_LOC`;
-        
-//                let selectStatement = `SELECT A.STATUS,
-//                                      A.FROM_LOC,
-//                                      B.DESCRIPTION,
-//                                      COUNT(*) AS COUNT 
-//                                 FROM ${option} A ,
-//                                      LOCATIONS_T B 
-//                                WHERE A.FROM_LOC=B.LOC_ID 
-//                                  AND OWNER='${owner}'
-//                                GROUP BY B.DESCRIPTION,A.STATUS,A.FROM_LOC`;
-
+  
         console.log(selectStatement);
 
         let bindVars = [];

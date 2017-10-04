@@ -18,6 +18,13 @@ router.get('/bin', function (req, res) {
     getBins(req, res);
 });
 
+router.get('/serial', function (req, res) {
+    getSerial(req, res);
+});
+
+router.get('/details', function (req, res) {
+    getDetails(req, res);
+});
 
 module.exports = router;
 
@@ -26,40 +33,51 @@ function getData(req, res) {
     /*Get the Search Parameters*/
     var eventId = (req.query.eventId || '%') + '%';
    // var invoice = (req.query.invoice || '%') + '%';
-    var locId = (req.query.locId || '%') + '%';
+    var locType = (req.query.locType || '%') + '%';
     var status = (req.query.status || '%') + '%';
-    
-    var invoice = '';
-    var part = '';
+    var fromLoc = (req.query.fromLoc || '%') + '%';
+    var toLoc = (req.query.toLoc || '%') + '%';
+    var invId = '';
+    var partNo = '';
     var partGrp = '';
-    var eventDt = '';
+    var invDt = '';
 
-    if (req.query.eventDt) {
-        eventDt = `AND EVENT_DATE = '${moment(req.query.eventDt).format("DD-MMM-YYYY")}'`;
+    if (req.query.invDt) {
+        invDt = `AND A.INV_DT = '${moment(req.query.invDt).format("DD-MMM-YYYY")}'`;
     }
 
-    if (req.query.invoice) {
-        invoice = ` AND INVOICE_NUM LIKE '${req.query.invoice}%' `;
+    if (req.query.invId) {
+        invId = ` AND A.INVOICE_NUM LIKE '${req.query.invId}%' `;
     }
 
-    if (req.query.part) {
-        part = ` AND PART_NO LIKE '${req.query.part}%' `;
+    if (req.query.partNo) {
+        partNo = ` AND B.PART_NO LIKE '${req.query.partNo}%' `;
     }
 
     if (req.query.partGrp) {
-        partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
+        partGrp = ` AND A.PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-
-    var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Invoice' EVENT_ID LIKE '${eventId}'  ${eventDt}  AND FROM_LOC LIKE '${locId}' AND EVENT_NAME LIKE '${status}' ${partGrp} ${invoice} ${part}`;
+    //console
+    var sqlStatement =`SELECT A.INVOICE_NUM,A.INV_DT,A.FROM_LOC,A.TO_LOC,A.LR_NO,A.DEVICE_ID,B.PART_NO,A.STATUS
+                         FROM INV_HDR_T A,
+	                      INV_LINE_T B,
+		              LOCATIONS_T L  
+                        WHERE A.INVOICE_NUM=B.INVOICE_NUM 
+	                  AND A.STATUS LIKE '${status}'  ${invDt}
+	                  AND A.from_loc=L.LOC_ID 
+                          AND A.FROM_LOC LIKE '${fromLoc}'
+                          AND A.TO_LOC LIKE '${toLoc}' ${partGrp} ${invId} ${partNo} 
+                          ORDER BY A.INV_DT DESC`;
     var bindVars = [];
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
 function getPallets(req, res) {
 
     /*Get the Search Parameters*/
-    var invoice = (req.query.invoice || '%') + '%';
+    var invId = (req.query.invId || '%') + '%';
     var part = '';
     var partGrp = '';
     //var invoice = '';
@@ -71,18 +89,19 @@ function getPallets(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM= '${invoice}' ${partGrp} ${part} `;
+    var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} `;
     var bindVars = [];
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
+
 
 function getBins(req, res) {
 
     /*Get the Search Parameters*/
-    var invoice = (req.query.invoice || '%') + '%';
+    var invId = (req.query.invId || '%') + '%';
     var part = '';
     var partGrp = '';
-    //var invoice = '';
    if (req.query.part) {
         part = ` AND PART_NO LIKE '${req.query.part}%' `;
     }
@@ -91,7 +110,61 @@ function getBins(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM= '${invoice}' ${partGrp} ${part} ORDER BY BIN_ID`;
+    var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY BIN_ID`;
     var bindVars = [];
+    console.log(sqlStatement);
+    op.singleSQL(sqlStatement, bindVars, req, res);
+}
+
+function getSerial(req, res) {
+
+    /*Get the Search Parameters*/
+    var invId = (req.query.invId || '%') + '%';
+    var part = '';
+    var partGrp = '';
+   if (req.query.part) {
+        part = ` AND PART_NO LIKE '${req.query.part}%' `;
+    }
+
+    if (req.query.partGrp) {
+        partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
+    }
+
+    var sqlStatement = `SELECT * FROM SERIAL_T WHERE 1=1 AND (CUST_INVOICE LIKE '${invId}' OR WH_INVOICE LIKE '${invId}') ${partGrp} ${part} ORDER BY SERIAL_NUM`;
+    var bindVars = [];
+    console.log(sqlStatement);
+    op.singleSQL(sqlStatement, bindVars, req, res);
+}
+
+function getDetails(req, res) {
+
+    /*Get the Search Parameters*/
+    var invId = (req.query.invId || '%') + '%';
+   // var invoice = (req.query.invoice || '%') + '%';
+    var locType = (req.query.locType || '%') + '%';
+    var status = (req.query.status || '%') + '%';
+    
+    var part = '';
+    var partGrp = '';
+
+    
+
+        if (req.query.part) {
+        part = ` AND B.PART_NO LIKE '${req.query.part}%' `;
+    }
+
+    if (req.query.partGrp) {
+        partGrp = ` AND A.PART_GRP LIKE '${req.query.partGrp}%' `;
+    }
+
+    //console
+    var sqlStatement =`SELECT * 
+                                 FROM EVENTS_T A,LOCATIONS_T L
+                                WHERE EVENT_TYPE = 'Invoice' 
+                                  AND EVENT_ID LIKE '${invId}' 
+                                  AND A.from_loc=L.LOC_ID 
+                             ORDER BY EVENT_TS DESC`;
+    var bindVars = [];
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
