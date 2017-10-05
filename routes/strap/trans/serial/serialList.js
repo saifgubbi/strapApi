@@ -42,6 +42,7 @@ function getDetail(req, res) {
     var partGrp = req.query.partGrp;
     var sqlStatement = `SELECT * FROM SERIAL_T WHERE BIN_LABEL LIKE '${label}' AND PART_GRP='${partGrp}'`;
     var bindVars = [];
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

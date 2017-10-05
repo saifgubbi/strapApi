@@ -58,6 +58,7 @@ function getChart(req, res) {
                                   AND C.TYPE= '${locType}' 
                                   AND A.PART_NO=B.PART_NO 
                                   AND B.PART_GRP = '${partGrp}'
+                                  AND A.STATUS<>'Dispatched'
                              GROUP BY ROUND(SYSDATE-STATUS_DT),A.PART_NO ORDER BY 1)
                                   )
                              GROUP BY AGE,PART_NO`;

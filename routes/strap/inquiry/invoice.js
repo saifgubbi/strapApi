@@ -67,7 +67,8 @@ function getData(req, res) {
 	                  AND A.STATUS LIKE '${status}'  ${invDt}
 	                  AND A.from_loc=L.LOC_ID 
                           AND A.FROM_LOC LIKE '${fromLoc}'
-                          AND A.TO_LOC LIKE '${toLoc}' ${partGrp} ${invId} ${partNo} 
+                          AND A.TO_LOC LIKE '${toLoc}' ${partGrp} ${invId} ${partNo}
+                          AND L.CLOSE_STATUS<>A.STATUS
                           ORDER BY A.INV_DT DESC`;
     var bindVars = [];
     console.log(sqlStatement);

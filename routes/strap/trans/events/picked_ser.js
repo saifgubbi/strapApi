@@ -141,9 +141,9 @@ function getSerial(req, res) {
     let oldBin = req.query.id;
     console.log('Fetch Serial');
 
-    let sqlStatement = `SELECT A.SERIAL_NUM FROM SERIAL_T A,BINS_T B WHERE B.BIN_ID='${oldBin}' AND B.PART_GRP='${partGrp}' AND B.LABEL=A.BIN_LABEL AND B.PART_GRP=A.PART_GRP`;
+    let sqlStatement = `SELECT A.SERIAL_NUM FROM SERIAL_T A,BINS_T B WHERE B.BIN_ID='${oldBin}' AND B.PART_GRP='${partGrp}' AND B.BIN_ID=A.BIN_ID AND B.PART_GRP=A.PART_GRP`;
     var bindVars = [];
-
+    console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

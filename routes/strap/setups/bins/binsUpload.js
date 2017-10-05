@@ -79,8 +79,8 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO BINS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13) ";
-            let bindVars = [data.BIN_ID, data.STATUS, new Date(), data.LOC_ID, data.PALLET_ID, data.LABEL, data.INVOICE, data.STATE, data.PART_NO, data.QTY, data.OWNER, data.SEQ,data.PART_GRP];
+            let insertStatement = "INSERT INTO BINS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14) ";
+            let bindVars = [data.BIN_ID, data.STATUS, new Date(), data.LOC_ID, data.PALLET_ID, data.LABEL, data.INVOICE, data.STATE, data.PART_NO, data.QTY, data.OWNER, data.SEQ,data.PART_GRP,''];
             //  console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {
