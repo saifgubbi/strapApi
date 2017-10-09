@@ -318,14 +318,9 @@ function getInvHist(req, res) {
         console.log("Getting List");
 
         let selectStatement = `SELECT * 
-                                 FROM EVENTS_T A,LOCATIONS_T L,USERS_T U
+                                 FROM EVENTS_T A
                                 WHERE EVENT_TYPE = 'Invoice' 
                                   AND EVENT_ID='${invId}' 
-                                  AND A.from_loc=L.LOC_ID 
-                                  AND ((U.ROLE <>'Admin'
-                                  AND L.LOC_ID=U.LOC_ID)
-                                  OR (U.ROLE = 'Admin'))
-                                  AND U.ROLE='${role}'
                              ORDER BY EVENT_TS DESC`;
         console.log(selectStatement);
 

@@ -78,12 +78,9 @@ function insertItems(req, res) {
         let arrayCount = 1;
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
-            //console.log("Inserting :", JSON.stringify(data));
             let insertStatement = "INSERT INTO PARTS_T VALUES (:1,UPPER(SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(regexp_replace(:3, '[^[:alnum:]]', null))-12)),:4,:5,:6,:7,:8)";
             let bindVars = [data.PART_GRP, data.PART_NO,data.PART_NO, data.CUST_PART_NO, data.VARIANT, data.PARTS_TYPE, data.SERIALIZED,data.PART_NO];
-//            var sqlStatement = "INSERT INTO PARTS_T VALUES (:1,SUBSTR(regexp_replace(:2, '[^[:alnum:]]', null),length(:3)-16),:4,:5,:6,:7,:8)";
-//           var bindVars = [req.body.partGrp, req.body.partNo,req.body.partNo, req.body.custPartNo, req.body.variant, req.body.partsType,req.body.serialized,req.body.partNo];
-           console.log("Inserting :",bindVars.join());
+            console.log("Inserting :",bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {
                         autoCommit: true// Override the default non-autocommit behavior
@@ -171,7 +168,7 @@ function insertItems(req, res) {
 function getLogs(req, res) {
     var partGrp = req.query.partGrp;
     var type = req.query.type;
-    var sqlStatement = `SELECT * FROM UPLOAD_LOG_T WHERE TYPE='${type}' AND PART_GRP='${partGrp}' ORDER BY SEQ DESC`;
+    var sqlStatement = `SELECT * FROM (SELECT * FROM UPLOAD_LOG_T WHERE TYPE='${type}' AND PART_GRP='${partGrp}' ORDER BY SEQ DESC) WHERE ROWNUM<=10`;
     console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);

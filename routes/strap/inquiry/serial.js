@@ -31,45 +31,39 @@ module.exports = router;
 function getData(req, res) {
 
     /*Get the Search Parameters*/
-    var eventId = (req.query.eventId || '%') + '%';
+   // var eventId = (req.query.eventId || '%') + '%';
    // var invoice = (req.query.invoice || '%') + '%';
     var locType = (req.query.locType || '%') + '%';
-    var status = (req.query.status || '%') + '%';
-    var fromLoc = (req.query.fromLoc || '%') + '%';
-    var toLoc = (req.query.toLoc || '%') + '%';
+    //var status = (req.query.status || '%') + '%';
+   // var fromLoc = (req.query.fromLoc || '%') + '%';
+   // var toLoc = (req.query.toLoc || '%') + '%';
     var invId = '';
     var partNo = '';
     var partGrp = '';
-    var invDt = '';
+    var serDt = '';
 
-    if (req.query.invDt) {
-        invDt = `AND A.INV_DT = '${moment(req.query.invDt).format("DD-MMM-YYYY")}'`;
+    if (req.query.serDt) {
+        serDt = `AND SERIAL_DT = '${moment(req.query.serDt).format("DD-MMM-YYYY")}'`;
     }
 
     if (req.query.invId) {
-        invId = ` AND A.INVOICE_NUM LIKE '${req.query.invId}%' `;
+        invId = ` AND WH_INVOICE LIKE '${req.query.invId}%' OR CUST_INVOICE LIKE '${req.query.invId}%'`;
     }
 
     if (req.query.partNo) {
-        partNo = ` AND B.PART_NO LIKE '${req.query.partNo}%' `;
+        partNo = ` AND PART_NO LIKE '${req.query.partNo}%' `;
     }
 
     if (req.query.partGrp) {
-        partGrp = ` AND A.PART_GRP LIKE '${req.query.partGrp}%' `;
+        partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
     //console
-    var sqlStatement =`SELECT A.INVOICE_NUM,A.INV_DT,A.FROM_LOC,A.TO_LOC,A.LR_NO,A.DEVICE_ID,B.PART_NO,A.STATUS
-                         FROM INV_HDR_T A,
-	                      INV_LINE_T B,
-		              LOCATIONS_T L  
-                        WHERE A.INVOICE_NUM=B.INVOICE_NUM 
-	                  AND A.STATUS LIKE '${status}'  ${invDt}
-	                  AND A.from_loc=L.LOC_ID 
-                          AND A.FROM_LOC LIKE '${fromLoc}'
-                          AND A.TO_LOC LIKE '${toLoc}' ${partGrp} ${invId} ${partNo}
-                         -- AND L.CLOSE_STATUS<>A.STATUS
-                          ORDER BY A.INV_DT DESC`;
+    var sqlStatement =`SELECT SERIAL_DT,SERIAL_NUM,BIN_ID,PART_NO,WH_INVOICE,CUST_INVOICE,PALLET_ID,STATUS
+                         FROM SERIAL_T
+                        WHERE 1=1 ${serDt} ${invId} ${partNo} ${partGrp}
+                          AND STATUS<>'New'
+                        ORDER BY SERIAL_DT DESC`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -78,7 +72,7 @@ function getData(req, res) {
 function getPallets(req, res) {
 
     /*Get the Search Parameters*/
-    var invId = (req.query.invId || '%') + '%';
+    var serNum = (req.query.serNum || '%') + '%';
     var part = '';
     var partGrp = '';
     //var invoice = '';
@@ -90,7 +84,11 @@ function getPallets(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} `;
+    var sqlStatement = `SELECT * 
+                          FROM PALLETS_T P, SERIAL_T S 
+                         WHERE P.PALLET_ID=S.PALLET_ID
+                           AND S.SERIAL_NUM LIKE '${serNum}' ${partGrp} ${part} 
+                          ORDER BY PALLET_ID`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -100,7 +98,7 @@ function getPallets(req, res) {
 function getBins(req, res) {
 
     /*Get the Search Parameters*/
-    var invId = (req.query.invId || '%') + '%';
+    var serNum = (req.query.serNum || '%') + '%';
     var part = '';
     var partGrp = '';
    if (req.query.part) {
@@ -111,7 +109,11 @@ function getBins(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY BIN_ID`;
+    var sqlStatement = `SELECT * 
+                          FROM BINS_T B, SERIAL_T S  
+                         WHERE B.BIN_ID=S.BIN_ID
+                           AND S.SERIAL_NUM LIKE '${serNum}' ${partGrp} ${part}
+                      ORDER BY BIN_ID`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -120,7 +122,7 @@ function getBins(req, res) {
 function getSerial(req, res) {
 
     /*Get the Search Parameters*/
-    var invId = (req.query.invId || '%') + '%';
+    var serNum = (req.query.serNum || '%') + '%';
     var part = '';
     var partGrp = '';
    if (req.query.part) {
@@ -131,7 +133,12 @@ function getSerial(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM SERIAL_T WHERE 1=1 AND (CUST_INVOICE LIKE '${invId}' OR WH_INVOICE LIKE '${invId}') ${partGrp} ${part} ORDER BY SERIAL_NUM`;
+    var sqlStatement = `SELECT S2.SERIAL_NUM,S2.BIN_ID,S2.PALLET_ID,S2.CUST_INVOICE,S2.WH_INVOICE,S2.STATUS
+                          FROM SERIAL_T S1, SERIAL_T S2
+                         WHERE S1.SERIAL_NUM LIKE '${serNum}'
+                           AND S1.BIN_ID=S2.BIN_ID
+                           AND S1.CUST_INVOICE=S2.CUST_INVOICE
+                           AND S1.WH_INVOICE=S2.CUST_INVOICE ${partGrp} ${part} ORDER BY SERIAL_NUM`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -140,7 +147,7 @@ function getSerial(req, res) {
 function getDetails(req, res) {
 
     /*Get the Search Parameters*/
-    var invId = (req.query.invId || '%') + '%';
+    var serNum = (req.query.serNum || '%') + '%';
    // var invoice = (req.query.invoice || '%') + '%';
     var locType = (req.query.locType || '%') + '%';
     var status = (req.query.status || '%') + '%';
@@ -159,11 +166,12 @@ function getDetails(req, res) {
     }
 
     //console
-    var sqlStatement =`SELECT * 
-                                 FROM EVENTS_T A,LOCATIONS_T L
-                                WHERE EVENT_TYPE = 'Invoice' 
-                                  AND EVENT_ID LIKE '${invId}' 
-                                  AND A.from_loc=L.LOC_ID 
+    var sqlStatement =`SELECT A.EVENT_ID NEW_BIN_ID,A.REF_ID OLD_BIN_ID,A.EVENT_NAME,A.EVENT_DATE,B.STATUS_DT,A.PART_NO,B.INVOICE_NUM ,A.SERIAL_NUM 
+                                  FROM EVENTS_T A,BINS_T B
+                                WHERE EVENT_TYPE = 'Bin' 
+                                  AND A.SERIAL_NUM=LIKE '${serNum}'
+                                  AND A.EVENT_ID=B.BIN_ID
+                                  AND EVENT_NAME='Picked'
                              ORDER BY EVENT_TS DESC`;
     var bindVars = [];
     console.log(sqlStatement);

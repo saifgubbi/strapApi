@@ -164,7 +164,7 @@ function uploadInvoices(req, res) {
 
 
 function getLogs(req, res) {
-    var sqlStatement = `SELECT * FROM UPLOAD_LOG_T WHERE TYPE='INVOICES' AND PART_GRP=:1 ORDER BY SEQ DESC`;
+    var sqlStatement = `SELECT * FROM (SELECT * FROM UPLOAD_LOG_T WHERE TYPE='INVOICES' AND PART_GRP=:1 ORDER BY SEQ DESC) WHERE ROWNUM<=10`;
     console.log(sqlStatement);
     var bindVars = [req.query.partGrp];
     op.singleSQL(sqlStatement, bindVars, req, res);

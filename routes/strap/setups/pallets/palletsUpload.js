@@ -169,7 +169,7 @@ function insertItems(req, res) {
 function getLogs(req, res) {
     var partGrp = req.query.partGrp;
     var type = req.query.type;
-    var sqlStatement = `SELECT * FROM UPLOAD_LOG_T WHERE TYPE='${type}' AND PART_GRP='${partGrp}' ORDER BY SEQ DESC`;
+    var sqlStatement = `SELECT * FROM(SELECT * FROM UPLOAD_LOG_T WHERE TYPE='${type}' AND PART_GRP='${partGrp}' ORDER BY SEQ DESC) WHERE ROWNUM<=10`;
     console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);

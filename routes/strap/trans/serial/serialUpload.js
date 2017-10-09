@@ -74,8 +74,8 @@ function insertItems(req, res) {
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
             console.log("Inserting :", JSON.stringify(data));
-            let insertStatement = "INSERT INTO SERIAL_T(SERIAL_DT,SERIAL_NUM,BIN_LABEL,PART_NO,PALLET_LABEL,PART_GRP,USER_ID,LOC_ID) VALUES (TO_DATE(:1, 'dd/mm/yyyy hh:mi:ss AM'),:2,:3,:4,:5,:6,:7,:8) ";
-            let bindVars = [data["Date"], data["Unique Part Ident. No."], data["Box Packaging No."], data["TTNR"] + data["Packaging Index"],data["Pallet Packaging No."], partGrp, userId,locId];
+            let insertStatement = "INSERT INTO SERIAL_T(SERIAL_DT,SERIAL_NUM,BIN_LABEL,PART_NO,PALLET_LABEL,PART_GRP,USER_ID,LOC_ID,STATUS) VALUES (TO_DATE(:1, 'dd/mm/yyyy hh24:mi:ss'),:2,:3,:4,:5,:6,:7,:8,:9) ";
+            let bindVars = [data["Packaging Date"], data["Unique Part Ident. No."], data["Box Packaging No."], data["TTNR"] + data["Packaging Index"],data["Pallet Packaging No."], partGrp, userId,locId,'New'];
             console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {
@@ -162,7 +162,7 @@ function insertItems(req, res) {
 
 
 function getLogs(req, res) {
-    var sqlStatement = `SELECT * FROM UPLOAD_LOG_T WHERE TYPE='SERIAL' AND PART_GRP='${req.query.partGrp}' ORDER BY SEQ DESC`;
+    var sqlStatement = `SELECT * FROM (SELECT * FROM UPLOAD_LOG_T WHERE TYPE='SERIAL' AND PART_GRP='${req.query.partGrp}' ORDER BY SEQ DESC) WHERE ROWNUM<=10`;
     console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
