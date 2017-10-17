@@ -158,7 +158,6 @@ function getInvAll(req, res) {
 
     }
 
-
     async.waterfall(
             [doConnect,
                 getHdr
@@ -172,9 +171,6 @@ function getInvAll(req, res) {
                 if (conn)
                     conn.close();
             });
-
-
-
 }
 
 
@@ -246,9 +242,6 @@ function getInvList(req, res) {
                 if (conn)
                     conn.close();
             });
-
-
-
 }
 
 
@@ -355,7 +348,6 @@ function getInvHist(req, res) {
 
     }
 
-
     async.waterfall(
             [doConnect,
                 getHdr,
@@ -370,9 +362,6 @@ function getInvHist(req, res) {
                 if (conn)
                     conn.close();
             });
-
-
-
 }
 
 
@@ -381,8 +370,6 @@ function getGeoLoc(req, res) {
     var partGrp = req.query.partGrp;
     var invId = req.query.invId;
     var geoRes = {inv: {}, curr: {}};
-
-
 
     var doConnect = function (cb) {
         op.doConnectCB(function (err, conn) {
@@ -451,11 +438,6 @@ function getGeoLoc(req, res) {
   //      console.log('body:', body); // Print the HTML for the Google homepage.
         });
     }
-
-
-
-
-
 
     async.waterfall(
             [doConnect,

@@ -32,7 +32,6 @@ function getData(req, res) {
 
     /*Get the Search Parameters*/
     var eventId = (req.query.eventId || '%') + '%';
-   // var invoice = (req.query.invoice || '%') + '%';
     var locType = (req.query.locType || '%') + '%';
     var status = (req.query.status || '%') + '%';
     var fromLoc = (req.query.fromLoc || '%') + '%';
@@ -81,7 +80,6 @@ function getPallets(req, res) {
     var invId = (req.query.invId || '%') + '%';
     var part = '';
     var partGrp = '';
-    //var invoice = '';
    if (req.query.part) {
         part = ` AND PART_NO LIKE '${req.query.part}%' `;
     }
@@ -91,6 +89,7 @@ function getPallets(req, res) {
     }
 
     var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} `;
+   //var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Pallet' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -112,6 +111,7 @@ function getBins(req, res) {
     }
 
     var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY BIN_ID`;
+    //var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Pallet' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -141,7 +141,6 @@ function getDetails(req, res) {
 
     /*Get the Search Parameters*/
     var invId = (req.query.invId || '%') + '%';
-   // var invoice = (req.query.invoice || '%') + '%';
     var locType = (req.query.locType || '%') + '%';
     var status = (req.query.status || '%') + '%';
     
@@ -150,7 +149,7 @@ function getDetails(req, res) {
 
     
 
-        if (req.query.part) {
+    if (req.query.part) {
         part = ` AND B.PART_NO LIKE '${req.query.part}%' `;
     }
 

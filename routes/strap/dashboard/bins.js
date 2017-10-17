@@ -86,12 +86,10 @@ function getData(req, res) {
 
 
                 let binResult = [];
-                //console.log(bin);
                 result.rows.forEach(function (row) {
                     console.log(row);
                     let rowAdded = false;
                     binResult.forEach(function (bin) {
-                        //console.log(bin);
                         if (bin.STATUS === row.STATUS && bin.FROM_LOC === row.FROM_LOC) {
 
                             rowAdded = true;
@@ -127,9 +125,6 @@ function getData(req, res) {
                 if (conn)
                     conn.close();
             });
-
-
-
 }
 
 

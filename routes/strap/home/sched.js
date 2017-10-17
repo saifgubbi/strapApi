@@ -27,7 +27,7 @@ function getData(req, res) {
                                     DISP 
                                       AS
                                        (
-                                              SELECT il.part_no,count(IL.PART_NO) disp_count,SUM(DECODE(IH.STATUS,'Dispatched',IL.QTY,'Reached',IL.QTY,0)) DISP_QTY
+                                              SELECT count(IL.PART_NO) disp_count,SUM(DECODE(IH.STATUS,'Dispatched',IL.QTY,'Reached',IL.QTY,0)) DISP_QTY
                                                 FROM INV_HDR_T IH,INV_LINE_T IL,LOCATIONS_T L 
                                                WHERE IH.PART_GRP LIKE '${partGrp}'
                                                  AND IH.INVOICE_NUM=IL.INVOICE_NUM

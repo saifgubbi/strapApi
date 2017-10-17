@@ -183,6 +183,7 @@ function updateData(req, res) {
 
 /*Not Used*/
 function updatePassword(req, res) {
+    console.log('inside update');
     var sqlStatement = "UPDATE USERS_T SET PASSWORD=:1 WHERE USER_ID=:2";
     hashPass(req.body.password, function (hashPassword) {
         var bindVars = [hashPassword, req.body.userId];
