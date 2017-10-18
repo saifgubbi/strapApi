@@ -49,6 +49,8 @@ router.use('/events/picked_ser', require('./trans/events/picked_ser'));
 router.use('/events/assignASN', require('./trans/events/assignASN'));
 router.use('/events/assignASN', require('./trans/events/assignASN'));
 
+router.use('/pickListAdd', require('./trans/pickList/pickListAdd'));
+router.use('/pickList', require('./trans/pickList/pickList'));
 
 router.use('/dashboard', require('./dashboard'));
 router.use('/inquiry', require('./inquiry'));

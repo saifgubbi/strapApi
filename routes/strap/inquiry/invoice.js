@@ -88,8 +88,8 @@ function getPallets(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} `;
-   //var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Pallet' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
+    //var sqlStatement = `SELECT * FROM PALLETS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} `;
+    var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Pallet' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
@@ -110,8 +110,8 @@ function getBins(req, res) {
         partGrp = ` AND PART_GRP LIKE '${req.query.partGrp}%' `;
     }
 
-    var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY BIN_ID`;
-    //var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Pallet' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
+    //var sqlStatement = `SELECT * FROM BINS_T WHERE INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY BIN_ID`;
+    var sqlStatement = `SELECT * FROM EVENTS_T WHERE EVENT_TYPE='Bin' AND INVOICE_NUM LIKE '${invId}' ${partGrp} ${part} ORDER BY EVENT_TS DESC`;
     var bindVars = [];
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
