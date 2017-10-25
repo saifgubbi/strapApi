@@ -38,7 +38,7 @@ function getInvoice(req, res) {
                                  WHERE ih.invoice_num=il.invoice_num
                                    AND ih.from_loc=l.loc_id
                                    AND l.type='Plant'
-                                   AND ih.status<>'Dispatched'
+                                   AND ih.status not in ('Dispatched','Reached')
                                    AND part_no IS NOT NULL
                                    AND ih.part_grp='${partGrp}'
                                   GROUP BY part_no)),
@@ -51,7 +51,7 @@ function getInvoice(req, res) {
                                 WHERE ih.invoice_num=il.invoice_num
                                   AND ih.from_loc=l.loc_id
                                   AND l.type IN ('Plant','Warehouse')
-                                  AND ih.status='Dispatched'
+                                  AND ih.status in ('Dispatched','Reached')
                                   AND part_no IS NOT NULL
                                   AND ih.part_grp='${partGrp}'
                                   GROUP BY part_no)),
@@ -63,7 +63,7 @@ function getInvoice(req, res) {
                                 WHERE ih.invoice_num=il.invoice_num
                                   AND ih.from_loc=l.loc_id
                                   AND l.type='Warehouse'
-                                  AND ih.status='Dispatched'
+                                  AND ih.status not in ('Dispatched','Reached')
                                   AND part_no IS NOT NULL
                                   AND ih.part_grp='${partGrp}'
                                   GROUP BY part_no))
@@ -102,8 +102,8 @@ function getTransit(req, res) {
                                FROM INV_HDR_T IH,INV_LINE_T IL,LOCATIONS_T L
                               WHERE ih.invoice_num=il.invoice_num
                                 and ih.from_loc=l.loc_id
-                                and l.type='Plant'
-                                and ih.status='Dispatched'
+                                and l.type in ('Plant','Warehouse')
+                                and ih.status in ('Dispatched','Reached')
                                 and part_no IS NOT NULL
                                 AND ih.part_grp='${partGrp}'
                                 GROUP BY part_no)`;

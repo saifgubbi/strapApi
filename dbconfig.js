@@ -17,10 +17,10 @@ module.exports = (function () {
         pools: [
             {
                 user: process.env.DBAAS_USER_NAME || "strap",
-                //password: process.env.DBAAS_USER_PASSWORD || "strap",
-                password: process.env.DBAAS_USER_PASSWORD || "Passw0rd_789",
-                //connectString: process.env.DBAAS_DEFAULT_CONNECT_DESCRIPTOR || "localhost/xe",
-                connectString: process.env.DBAAS_DEFAULT_CONNECT_DESCRIPTOR || "strap.c27rvxvvwmxs.ap-south-1.rds.amazonaws.com/strap",
+                password: process.env.DBAAS_USER_PASSWORD || "strap",
+                //password: process.env.DBAAS_USER_PASSWORD || "Passw0rd_789",
+                connectString: process.env.DBAAS_DEFAULT_CONNECT_DESCRIPTOR || "localhost/xe",
+                //connectString: process.env.DBAAS_DEFAULT_CONNECT_DESCRIPTOR || "strap.c27rvxvvwmxs.ap-south-1.rds.amazonaws.com/strap",
                 alias: 'strap'
             }],
         secret: secret,

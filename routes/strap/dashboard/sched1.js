@@ -121,8 +121,6 @@ function getData(req, res) {
                     );
                 });
             }
-//                 res.writeHead(200, {'Content-Type': 'application/json'});
-//                 res.end(JSON.stringify(schArr));
                 cb(null, conn);
             }
         );
@@ -169,18 +167,12 @@ function getData(req, res) {
     function getDisp(conn, cb) {
         console.log("Getting List");
 
-//        let selectStatement = `SELECT IL.PART_NO as "partNo",DECODE(IH.STATUS,'Dispatched',0,'Reached',0,IL.QTY) as "whQty",DECODE(IH.STATUS,'Dispatched',IL.QTY,'Reached',IL.QTY,0) as"dispQty"
-//                                 FROM INV_HDR_T IH,INV_LINE_T IL,LOCATIONS_T L 
-//                                WHERE IH.PART_GRP='${partGrp}'${partNo}
-//                                  AND IH.INVOICE_NUM=IL.INVOICE_NUM
-//                                  AND IH.FROM_LOC=L.LOC_ID
-//                                  AND L.TYPE='Warehouse'
-//                                  AND TRUNC(STATUS_DT) BETWEEN trunc(sysdate) and trunc(sysdate+3)`;
         let selectStatement = `SELECT b.PART_NO as "partNo",SUM(DECODE(b.STATUS,'Dispatched',0,'Reached',0,b.QTY)) as "whQty",SUM(DECODE(b.STATUS,'Dispatched',b.QTY,'Reached',b.QTY,0)) as"dispQty"
                                  FROM bins_t b,LOCATIONS_T L
                                 WHERE b.PART_GRP='${partGrp}'${partNo}
                                   AND b.FROM_LOC=L.LOC_ID
                                   AND L.TYPE='Warehouse'
+                                  AND TRUNC(b.STATUS_DT) BETWEEN trunc(sysdate) and trunc(sysdate+3)
                                   group by part_no`;
         console.log(selectStatement);
 
@@ -237,31 +229,141 @@ function getSched(req, res) {
     var partGrp = req.query.partGrp;
     var option = req.query.option;
     var partNo = req.query.partNo;
+    var schArr =[];
+    
     if (option === 'TD1') {
         dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE)`;
     } else {
-        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+2)`;
+        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+3)`;
     }
-    let selectStatement = `SELECT PART_NO,SCHED_HR,(NVL(QTY,0))QTY,(NVL(WIP_QTY,0))WIP_QTY,SCHED_DT,(NVL(CLOSE_STK,0)) CLOSE_STK
+    
+    var doConnect = function (cb) {
+        op.doConnectCB(function (err, conn) {
+            if (err)
+                throw err;
+            cb(null, conn);
+        });
+    };
+    
+    function getSchP(conn, cb) {
+        console.log("Getting List");
+        let selectStatement = `SELECT PART_NO,SCHED_HR,SCHED_DT
                                                     FROM SCHED_T 
 						   WHERE PART_GRP='${partGrp}'
                                                      AND PART_NO ='${partNo}'
                                                      AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
                                                 ORDER BY SCHED_HR,SCHED_DT`;
+        console.log(selectStatement);
 
-    console.log(selectStatement);
+        let bindVars = [];
 
-    var bindVars = [];
-    op.singleSQL(selectStatement, bindVars, req, res);
+        conn.execute(selectStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                result.rows.forEach(function (row) {
+                    let obj = {};
+                    obj.schDt = row.SCHED_DT;
+                    obj[row.SCHED_HR] = 0;
+                    schArr.push(obj);
+                });
+                cb(null, conn);
+            }
+        });
+
+    }
+    
+    function getSchP1(conn, cb) {
+        console.log("Getting List");
+        let selectStatement = `SELECT SCHED_HR,(NVL(QTY,0))QTY,SCHED_DT
+                                                    FROM SCHED_T 
+						   WHERE PART_GRP='${partGrp}'
+                                                     AND PART_NO ='${partNo}'
+                                                     AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
+                                                ORDER BY SCHED_HR,SCHED_DT`;
+        console.log(selectStatement);
+
+        let bindVars = [];
+
+        conn.execute(selectStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                result.rows.forEach(function (row) {
+                    schArr.forEach(function(sch)
+                    {
+                        if (sch.schDt===row.SCHED_DT)
+                        {
+                            schArr[row.SCHED_HR]=row.QTY;
+                            console.log(row.QTY);
+                        }
+                    });
+                });
+                 res.writeHead(200, {'Content-Type': 'application/json'});
+                 res.end(JSON.stringify(schArr));
+                cb(null, conn);
+            }
+        });
+
+    }
+   
+    
+    async.waterfall(
+            [doConnect,
+             getSchP,
+             getSchP1
+            ],
+            function (err, conn) {
+                if (err) {
+                    console.error("In waterfall error cb: ==>", err, "<==");
+                    res.status(500).json({message: err});
+                }
+                console.log("Done Waterfall");
+                if (conn)
+                    conn.close();
+            });
 
 }
 
+//function getSched(req, res) {
+//    var partGrp = req.query.partGrp;
+//    var option = req.query.option;
+//    var partNo = req.query.partNo;
+//    if (option === 'TD1') {
+//        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE)`;
+//    } else {
+//        dateCrit = `TRUNC(SYSDATE) AND TRUNC(SYSDATE+2)`;
+//    }
+//    let selectStatement = `SELECT PART_NO,SCHED_HR,(NVL(QTY,0))QTY,(NVL(WIP_QTY,0))WIP_QTY,SCHED_DT,(NVL(CLOSE_STK,0)) CLOSE_STK
+//                                                    FROM SCHED_T 
+//						   WHERE PART_GRP='${partGrp}'
+//                                                     AND PART_NO ='${partNo}'
+//                                                     AND TRUNC(SCHED_DT) BETWEEN ${dateCrit}
+//                                                ORDER BY SCHED_HR,SCHED_DT`;
+//
+//    console.log(selectStatement);
+//
+//    var bindVars = [];
+//    op.singleSQL(selectStatement, bindVars, req, res);
+//
+//}
 
 function getParts(req, res) {
 
     var partGrp = req.query.partGrp;
     var partNo= req.query.partNo;
-    //console
     var sqlStatement = `SELECT count(1) parts,loc,sum(part_qty) part_qty
                                FROM(
                                select distinct part_no,case  WHEN l.TYPE='Plant' AND ih.STATUS NOT IN ('Dispatched','Reached') Then 'Plant'
@@ -280,117 +382,3 @@ function getParts(req, res) {
     console.log(sqlStatement);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
-
-// Commented as Sched for a single array
-//function getSched(req, res) {
-//    var partGrp = req.query.partGrp;
-//    var partNo = req.query.partNo;
-//    var invDt = '';
-//    
-//    if (req.query.invDt) {
-//        invDt = `AND sched_dt = '${moment(req.query.invDt).format("DD-MMM-YYYY")}'`;
-//    }
-//          
-//    var schArr = [];
-//            
-//    var doConnect = function (cb) {
-//        op.doConnectCB(function (err, conn) {
-//            if (err)
-//                throw err;
-//            cb(null, conn);
-//        });
-//    };
-//    
-//    function getArr(conn, cb)
-//    {
-//       console.log("Getting List");
-//        let selectStatement = `select distinct sched_hr  as"schedHr"
-//                                 from sched_t 
-//                                WHERE part_grp='${partGrp}' 
-//                             order by sched_hr asc`;
-//        console.log(selectStatement);
-//
-//        let bindVars = [];
-//        conn.execute(selectStatement
-//                , bindVars, {
-//                    outFormat: oracledb.OBJECT, // Return the result as Object
-//                    autoCommit: true// Override the default non-autocommit behavior
-//                }, function (err, result)
-//        {
-//            if (err) {
-//                console.log("Error Occured: ", err);
-//                cb(err, conn);
-//            } else {
-//                    result.rows.forEach(function (row) {
-//                    let obj = {};
-//                    obj["hr"+row.schedHr] = 0;
-//                 //   obj.schedHr="hr"+row.schedHr;
-//                    schArr.push(obj);
-//                    
-//                });
-////                 res.writeHead(200, {'Content-Type': 'application/json'});
-////                 res.end(JSON.stringify(schArr));
-//                cb(null, conn);
-//            }
-//        });
-//    }
-//    function getSchP(conn, cb) {
-//        console.log("Getting List");
-//        let selectStatement = `SELECT 'hr'||sched_hr as "schHr", qty as "schQty"
-//                                  FROM sched_t p 
-//                                 WHERE part_grp='${partGrp}' 
-//                                   AND part_no='${partNo}' ${invDt}
-//	                           AND part_no is not null 
-//                             group by sched_hr,qty
-//                             order by sched_hr desc`;
-//        console.log(selectStatement);
-//
-//        let bindVars = [];
-//
-//        conn.execute(selectStatement
-//                , bindVars, {
-//                    outFormat: oracledb.OBJECT, // Return the result as Object
-//                    autoCommit: true// Override the default non-autocommit behavior
-//                }, function (err, result)
-//        {
-//            if (err) {
-//                console.log("Error Occured: ", err);
-//                cb(err, conn);
-//            } else {
-//                result.rows.forEach(function (row) {
-//                    schArr.forEach(function (sch)
-//                    {
-//                        console.log("row : "+row.schHr+" sched : "+sch[row.schHr]);
-//                      if (row.schHr === sch[row.schHr])
-//                      {
-//                           sch[row.schHr] = row.schQty;  
-//                      }
-//                    
-//                    });
-//                    
-//                });
-//                 res.writeHead(200, {'Content-Type': 'application/json'});
-//                 res.end(JSON.stringify(schArr));
-//                cb(null, conn);
-//            }
-//        });
-//
-//    }
-//
-//
-//    
-//    async.waterfall(
-//            [doConnect,
-//             getArr,
-//             getSchP
-//            ],
-//            function (err, conn) {
-//                if (err) {
-//                    console.error("In waterfall error cb: ==>", err, "<==");
-//                    res.status(500).json({message: err});
-//                }
-//                console.log("Done Waterfall");
-//                if (conn)
-//                    conn.close();
-//            });
-//}
