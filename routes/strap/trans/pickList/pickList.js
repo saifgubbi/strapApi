@@ -27,8 +27,12 @@ function pickListInfo(req, res) {
 
     var doSelect = function (conn, cb) {
         let partGrp = req.query.partGrp;
-
-        var sqlStatement = `SELECT * FROM PICK_LIST_T WHERE PART_GRP='${partGrp}'`;
+        var pickList = '';
+     
+    if (req.query.picklistNo) {
+        pickList = `AND PICK_LIST='${req.query.picklistNo}'`;
+    }
+        var sqlStatement = `SELECT * FROM PICK_LIST_T WHERE PART_GRP='${partGrp}' ${pickList}`;
 
         console.log(sqlStatement);
 

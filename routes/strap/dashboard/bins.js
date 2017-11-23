@@ -29,8 +29,9 @@ function getData(req, res) {
     var option = req.query.option;
     var owner = req.query.owner;
     var role = req.query.role;
+    var locId = req.query.locId;
     var bins = {binsSeries: [], binsGroups: [], binLocCount: []};
-
+    
 
 
     var doConnect = function (cb) {
@@ -52,6 +53,7 @@ function getData(req, res) {
                                        LOCATIONS_T B,
                                        USERS_T U
                                  WHERE A.FROM_LOC=B.LOC_ID 
+                                   AND B.LOC_ID ='${locId}'
                                    AND OWNER='${owner}'
                                    AND ((U.ROLE <>'Admin'
                                          AND B.LOC_ID=U.LOC_ID)

@@ -35,15 +35,15 @@ function getChart(req, res) {
 
         let selectStatement = `SELECT AGE,PART_NO,SUM(QTY) QTY
                                 FROM(
-                                     SELECT CASE WHEN AGE< 7 THEN 1 
-                                              WHEN AGE>7 and AGE <14 THEN 2 
-                                           WHEN AGE>14 and AGE <21 THEN 3 
-                                           WHEN AGE>21 and AGE <28 THEN 4 
-                                           WHEN AGE>28 and AGE <35 THEN 5 
-                                           WHEN AGE>35 and AGE <42 THEN 6 
-                                           WHEN AGE>42 and AGE <49 THEN 7
-                                           WHEN AGE>49 and AGE <56 THEN 8
-                                           WHEN AGE>56 and AGE <63 THEN 9
+                                     SELECT CASE WHEN AGE<= 7 THEN 1 
+                                              WHEN AGE>7 and AGE <=14 THEN 2 
+                                           WHEN AGE>14 and AGE <=21 THEN 3 
+                                           WHEN AGE>21 and AGE <=28 THEN 4 
+                                           WHEN AGE>28 and AGE <=35 THEN 5 
+                                           WHEN AGE>35 and AGE <=42 THEN 6 
+                                           WHEN AGE>42 and AGE <=49 THEN 7
+                                           WHEN AGE>49 and AGE <=56 THEN 8
+                                           WHEN AGE>56 and AGE <=63 THEN 9
                                            WHEN AGE>63 THEN 10
                                        END AGE, AGE as age1,
                                        PART_NO,QTY
@@ -58,14 +58,14 @@ function getChart(req, res) {
                                   AND C.TYPE= '${locType}' 
                                   AND A.PART_NO=B.PART_NO 
                                   AND B.PART_GRP = '${partGrp}'
-                                  AND A.STATUS<>'Dispatched'
+                                  AND A.STATUS NOT IN ('Dispatched','Reached')
                              GROUP BY ROUND(SYSDATE-STATUS_DT),A.PART_NO ORDER BY 1)
                                   )
                              GROUP BY AGE,PART_NO`;
 
 
         let bindVars = [];
-
+        console.log(selectStatement);
         conn.execute(selectStatement
                 , bindVars, {
                     outFormat: oracledb.OBJECT, // Return the result as Object

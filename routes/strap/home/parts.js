@@ -48,9 +48,11 @@ function getParts(req, res) {
                                                              WHEN l.TYPE='Warehouse' AND b.STATUS NOT IN ('Dispatched','Reached') Then 'Warehouse'
                                                              WHEN l.TYPE='Warehouse' AND b.STATUS IN ('Dispatched','Reached') Then 'Transit' 
                                                          end loc,b.qty part_qty
-                                 from bins_t b,LOCATIONS_T l 
+                                 from bins_t b,parts_t p,LOCATIONS_T l 
                                 where b.from_loc=l.loc_id 
-                                  and part_no is not null
+                                  and b.part_no is not null
+                                  and b.part_no=p.part_no
+                                  and b.status NOT IN 'New'
                                   and b.part_grp like '${partGrp}')
                                  SELECT part_no,loc,sum(part_qty) part_qty from PARTS group by part_no,loc) group by loc
                                  `;

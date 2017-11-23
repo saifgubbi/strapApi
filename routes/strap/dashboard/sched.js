@@ -136,7 +136,7 @@ function getData(req, res) {
         let selectStatement = `  SELECT PART_NO as "partNo",SUM(NVL(QTY,0)) as "asnQty"
 	                           FROM asn_t 
                                   WHERE part_grp='${partGrp}'${partNo}
-                                  AND TRUNC(asn_date) BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE+3)
+                                  AND TRUNC(asn_date) = TRUNC(SYSDATE)
                                   GROUP BY PART_NO,ASN_DATE`;
         console.log(selectStatement);
 
@@ -169,15 +169,14 @@ function getData(req, res) {
     }
     ;
 
-    function getDisp(conn, cb) {
+    function getWareHouse(conn, cb) {
         console.log("Getting List");
 
-        let selectStatement = `SELECT b.PART_NO as "partNo",SUM(DECODE(b.STATUS,'Dispatched',0,'Reached',0,b.QTY)) as "whQty",SUM(DECODE(b.STATUS,'Dispatched',b.QTY,'Reached',b.QTY,0)) as"dispQty"
+        let selectStatement = `SELECT b.PART_NO as "partNo",SUM(DECODE(b.STATUS,'Dispatched',0,'Reached',0,b.QTY)) as "whQty"
                                  FROM bins_t b,LOCATIONS_T L
                                 WHERE b.PART_GRP='${partGrp}'${partNo}
                                   AND b.FROM_LOC=L.LOC_ID
                                   AND L.TYPE='Warehouse'
-                                  AND TRUNC(b.STATUS_DT) BETWEEN trunc(sysdate) and trunc(sysdate+3)
                                   group by part_no`;
         console.log(selectStatement);
 
@@ -199,6 +198,46 @@ function getData(req, res) {
                         if (row.partNo === sch.partNo)
                         {
                             sch.whQty = row.whQty;
+                        }
+
+                    });
+                });
+            }
+            ;
+            
+            cb(null, conn);
+        });
+
+    }
+    function getDisp(conn, cb) {
+        console.log("Getting List");
+
+        let selectStatement = `SELECT b.PART_NO as "partNo",SUM(DECODE(b.STATUS,'Dispatched',b.QTY,'Reached',b.QTY,0)) as"dispQty"
+                                 FROM bins_t b,LOCATIONS_T L
+                                WHERE b.PART_GRP='${partGrp}'${partNo}
+                                  AND b.FROM_LOC=L.LOC_ID
+                                  AND L.TYPE='Warehouse'
+                                  AND TRUNC(b.STATUS_DT) = trunc(sysdate)
+                                  group by part_no`;
+        console.log(selectStatement);
+
+        let bindVars = [];
+
+        conn.execute(selectStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                result.rows.forEach(function (row) {
+                    schArr.forEach(function (sch)
+                    {
+                        if (row.partNo === sch.partNo)
+                        {
                             sch.dispQty = row.dispQty;
                         }
 
@@ -215,8 +254,9 @@ function getData(req, res) {
     async.waterfall(
             [doConnect,
                 getSchP,
-                getSchP1
-                        , getAsn,
+                getSchP1,
+                getAsn,
+                getWareHouse,
                 getDisp
             ],
             function (err, conn) {
