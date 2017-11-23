@@ -45,7 +45,7 @@ function getData(req, res) {
 }
 
 function addData(req, res) {
-    var sqlStatement = "INSERT INTO PARTS_GRP_T VALUES (:1,:2,:3) ";
+    var sqlStatement = "INSERT INTO PARTS_GRP_T(PART_GRP,DESCRIPTION,OWNER) VALUES (:1,:2,:3) ";
     var bindVars = [req.body.partGrp, req.body.description, req.body.owner];
 
     console.log(bindVars.join());

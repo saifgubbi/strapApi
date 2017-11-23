@@ -22,6 +22,9 @@ router.get('/history', function (req, res) {
     getInvHist(req, res);
 });
 
+router.get('/current', function (req, res) {
+    getInvCur(req, res);
+});
 
 router.get('/geoLoc', function (req, res) {
     getGeoLoc(req, res);
@@ -250,8 +253,9 @@ function getInvHist(req, res) {
 
     var partGrp = req.query.partGrp;
     var invId = req.query.invId;
-    var invDt = moment(req.query.invDt).format("DD-MMM-YYYY");
+    //var invDt = moment(req.query.invDt).format("DD-MMM-YYYY");
     var role = req.query.role;
+    var locType = req.query.locType;
     var invRes = {inv: {}, events: []};
 
     var doConnect = function (cb) {
@@ -264,7 +268,7 @@ function getInvHist(req, res) {
 
     function getHdr(conn, cb) {
         console.log("Getting List");
-        let selectStatement = `SELECT * 
+        let selectStatement = `SELECT A.* ,B.PART_NO,B.QTY
                                  FROM INV_HDR_T A,
                                       INV_LINE_T B,
 		                      LOCATIONS_T L,
@@ -272,6 +276,7 @@ function getInvHist(req, res) {
                                 WHERE A.INVOICE_NUM = '${invId}'
                                   AND A.INVOICE_NUM=B.INVOICE_NUM 
                                   AND A.INV_DT=B.INV_DT 
+                                  AND L.TYPE='${locType}' 
                                   AND A.from_loc=L.LOC_ID 
                                   AND B.PART_NO IN(
                                                    SELECT PART_NO 
@@ -310,11 +315,14 @@ function getInvHist(req, res) {
     function getEvents(conn, cb) {
         console.log("Getting List");
 
-        let selectStatement = `SELECT * 
-                                 FROM EVENTS_T A
-                                WHERE EVENT_TYPE = 'Invoice' 
-                                  AND EVENT_ID='${invId}' 
-                             ORDER BY EVENT_TS DESC`;
+        let selectStatement = `SELECT A.* 
+                                 FROM EVENTS_T A,INV_HDR_T IH,LOCATIONS_T L
+                                WHERE A.EVENT_TYPE = 'Invoice' 
+                                  AND A.EVENT_ID='${invId}'
+                                  AND A.EVENT_ID=IH.INVOICE_NUM
+                                  AND IH.FROM_LOC = L.LOC_ID
+                                  AND L.TYPE='${locType}' 
+                             ORDER BY A.EVENT_TS DESC`;
         console.log(selectStatement);
 
         let bindVars = [];
@@ -370,7 +378,8 @@ function getGeoLoc(req, res) {
     var partGrp = req.query.partGrp;
     var invId = req.query.invId;
     var geoRes = {inv: {}, curr: {}};
-
+    var locType = req.query.locType;
+    
     var doConnect = function (cb) {
         op.doConnectCB(function (err, conn) {
             if (err)
@@ -389,6 +398,8 @@ function getGeoLoc(req, res) {
                                       C.LON AS "destLang"
                                  FROM INV_HDR_T A,LOCATIONS_T B,LOCATIONS_T C 
                                 WHERE A.INVOICE_NUM = '${invId}' 
+                                  AND A.PART_GRP= '${partGrp}' 
+                                  AND B.TYPE='${locType}' 
                                   AND A.FROM_LOC=B.LOC_ID 
                                   AND A.TO_LOC=C.LOC_ID`;
         console.log(selectStatement);
@@ -454,4 +465,87 @@ function getGeoLoc(req, res) {
                     conn.close();
             });
 
+}
+
+function getInvCur(req, res) {
+
+    var partGrp = req.query.partGrp;
+    var invId = req.query.invId;
+    var locType = req.query.locType;
+    var doConnect = function (cb) {
+        op.doConnectCB(function (err, conn) {
+            if (err)
+                throw err;
+            cb(null, conn);
+        });
+    };
+
+    function getHdr(conn, cb) {
+        console.log("Getting List");
+
+        let selectStatement = `SELECT EVENT_ID,CREATION_DT,EVENT_NAME,CURR_LOC,FROM_LOC,TO_LOC,PERCENTAGE, EXPECTED_DT
+                               FROM(
+                                     SELECT EVENT_ID,(SELECT INV_DT FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID) CREATION_DT,
+                                                     DECODE(EVENT_NAME,'Received',(SELECT STATUS_DT FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID),
+                                                                       'Reached',(SELECT STATUS_DT FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID),
+                                                                        (SELECT STATUS_DT+1 FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID)) EXPECTED_DT, 
+                                                     E.EVENT_NAME,E.FROM_LOC CURR_LOC,
+                                                     (SELECT IH.FROM_LOC FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID) FROM_LOC,
+                                                     (SELECT IH.TO_LOC FROM INV_HDR_T WHERE INVOICE_NUM=E.EVENT_ID AND FROM_LOC=L.LOC_ID) TO_LOC,
+                                           CASE WHEN E.FROM_LOC= '1760' AND EVENT_NAME='Add' THEN 0 
+                                                WHEN E.FROM_LOC= 'W720' AND EVENT_NAME='Add' THEN 0
+                                                WHEN E.FROM_LOC= '1760' THEN 10 
+                                                WHEN E.FROM_LOC= 'BOMM' THEN 20
+                                                WHEN E.FROM_LOC= 'HOSUR' THEN 30
+                                                WHEN E.FROM_LOC= 'KGIRI' THEN 50
+                                                WHEN E.FROM_LOC= 'VLLR' THEN 70
+                                                WHEN E.FROM_LOC= 'W720'  AND EVENT_NAME='Reached' THEN 90
+                                                WHEN E.FROM_LOC= 'HMIL'  AND EVENT_NAME='Reached' THEN 100
+                                                WHEN E.FROM_LOC= 'W720'  AND EVENT_NAME='Received' THEN 100
+                                                WHEN E.FROM_LOC= 'HMIL'  AND EVENT_NAME='Received' THEN 100
+                                            END PERCENTAGE,EVENT_DATE                   
+                                       FROM EVENTS_T E,INV_HDR_T IH,LOCATIONS_T L 
+                                      WHERE E.EVENT_ID='${invId}'
+                                        AND E.EVENT_ID=IH.INVOICE_NUM
+                                        AND IH.FROM_LOC = L.LOC_ID
+                                        AND L.TYPE='${locType}' 
+                                        AND E.PART_GRP= '${partGrp}' 
+                                    order by EVENT_TS DESC
+                                    )
+                                WHERE ROWNUM=1`;
+        console.log(selectStatement);
+
+        let bindVars = [];
+
+        conn.execute(selectStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT, // Return the result as Object
+                    autoCommit: true// Override the default non-autocommit behavior
+                }, function (err, result)
+        {
+            if (err) {
+                console.log("Error Occured: ", err);
+                cb(err, conn);
+            } else {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify(result.rows));
+                cb(null, conn);
+            }
+        });
+
+    }
+
+    async.waterfall(
+            [doConnect,
+                getHdr
+            ],
+            function (err, conn) {
+                if (err) {
+                    console.error("In waterfall error cb: ==>", err, "<==");
+                    res.status(500).json({message: err});
+                }
+                console.log("Done Waterfall");
+                if (conn)
+                    conn.close();
+            });
 }

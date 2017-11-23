@@ -17,7 +17,6 @@ router.get('/parts', function (req, res) {
 
 router.get('/id', function (req, res) {
     getId(req, res);
-
 });
 
 module.exports = router;
@@ -30,7 +29,6 @@ function partsAssign(req, res) {
     let locId = req.body.locId;
     let partNo = req.body.partNo;
     let qty = req.body.qty;
-
     let ts = new Date().getTime();
 
     let bindArr = [];

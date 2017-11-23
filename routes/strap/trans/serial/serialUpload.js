@@ -71,12 +71,13 @@ function insertItems(req, res) {
         var userId = req.body.userId;
         var locId = req.body.locId;
         let arrayCount = 1;
+        console.log(locId);
         async.eachSeries(dataArray, function (data, callback) {
             arrayCount++;
-            console.log("Inserting :", JSON.stringify(data));
+            //console.log("Inserting :", JSON.stringify(data));
             let insertStatement = "INSERT INTO SERIAL_T(SERIAL_DT,SERIAL_NUM,BIN_LABEL,PART_NO,PALLET_LABEL,PART_GRP,USER_ID,LOC_ID,STATUS) VALUES (TO_DATE(:1, 'dd/mm/yyyy hh24:mi:ss'),:2,:3,:4,:5,:6,:7,:8,:9) ";
             let bindVars = [data["Packaging Date"], data["Unique Part Ident. No."], data["Box Packaging No."], data["TTNR"] + data["Packaging Index"],data["Pallet Packaging No."], partGrp, userId,locId,'New'];
-            console.log(bindVars.join());
+           // console.log(bindVars.join());
             conn.execute(insertStatement
                     , bindVars, {
                         autoCommit: true// Override the default non-autocommit behavior

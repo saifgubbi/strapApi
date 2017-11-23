@@ -36,7 +36,9 @@ function getData(req, res) {
 
 function addData(req, res) {
     var sqlStatement = "INSERT INTO LOCATIONS_T VALUES (:1,:2,:3,:4,:5,:6) ";
+    
     var bindVars = [req.body.locId, req.body.desc, req.body.type, req.body.closeStatus, req.body.lat, req.body.lon];
+    console.log(bindVars);
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 

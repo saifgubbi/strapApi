@@ -41,7 +41,6 @@ function getData(req, res) {
     }
     var sqlStatement = `SELECT * FROM INV_HDR_T A,INV_LINE_T B  WHERE A.INVOICE_NUM LIKE '${invId}' ${invDt}  AND A.FROM_LOC LIKE '${fromLoc}' AND A.TO_LOC LIKE '${toLoc}' AND A.STATUS LIKE '${status}' AND                         
                         A.INVOICE_NUM=B.INVOICE_NUM AND A.INV_DT=B.INV_DT AND B.PART_NO LIKE '${partNo}' AND A.PART_GRP = '${partGrp}'${lr} `;
-    console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }

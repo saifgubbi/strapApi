@@ -5,7 +5,8 @@ var morgan = require('morgan');
 var passport = require('passport');
 var jwt = require('jsonwebtoken');
 
-var verifyUser = require('./verifyUser');
+//var verifyUser = require('./verifyUser');
+var loginUser = require('./loginUser');
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -36,7 +37,8 @@ app.use(function (req, res, next) {
     }
 });
 
-app.use('/verifyUser', verifyUser);
+//app.use('/verifyUser', verifyUser);
+app.use('/loginUser', loginUser);
 
 if (require('./dbconfig').prod) {
     app.use('/api', passport.authenticate('jwt', {session: false}), function (req, res, next) {

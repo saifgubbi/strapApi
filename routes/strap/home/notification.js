@@ -9,26 +9,11 @@ router.get('/', function (req, res) {
     getNotify(req, res);
 });
 
-
-router.get('/binsDet', function (req, res) {
-    getBinsDet(req, res);
-});
-
-router.get('/history', function (req, res) {
-    getBinHist(req, res);
-});
-
-
-
 module.exports = router;
 
 
 function getNotify(req, res) {
 
-    var userId = req.query.userId;
-
-    //var eventDt = moment(req.query.eventDt).format("DD-MM-YYYY");
-    //console
     var sqlStatement = `SELECT event_date,event_type,event_name,event_id,comments description , event_ts,Priority
                        FROM(
                        select event_date,event_type,event_name,event_id,'Device Id :'||event_id||': Entry/Exit : '||FROM_LOC comments , e.event_ts,'Low' Priority

@@ -3,16 +3,32 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/inquiry/index.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invLR.js</file>
             <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/bins/bins.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/users/users.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/inquiry/invoice.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/serial/serialUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/locations/locations.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/index.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/sched/schedList.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invList.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invPallet.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/pickList/pickList.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/index.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/bins/binsUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/pallets/palletsUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/palletize/palletize.js</file>
             <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/dbconfig.js</file>
             <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invPicklist.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/index.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/home/map.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/home/user.js</file>
-            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/dashboard/sched.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/invoice/invAdd.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/sched/schedUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/pickList/pickListAdd.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/parts/partGrps.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/parts/partsUpload.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/serial/serialList.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/users/users.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/trans/palletize/palletizeList.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/pallets/pallets.js</file>
+            <file>file:/C:/Users/MSF5KOR/Desktop/Saif/Shipment_Tracking/strapApi/routes/strap/setups/parts/parts.js</file>
         </group>
     </open-files>
 </project-private>

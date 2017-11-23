@@ -7,7 +7,6 @@ router.put('/', function (req, res) {
     updateLR(req, res);
 });
 
-
 router.get('/', function (req, res) {
     getInvList(req, res);
 });
@@ -26,15 +25,14 @@ function updateLR(req, res) {
 
     let bindArr = [];
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
-
+    //console.log(req.body.invArray);
     req.body.invArray.forEach(function (obj) {
+        console.log(obj);
         let bindVars = [obj, 'Invoice', 'LR Assigned', new Date(), locId, '', '', '', '', invId, userId, '', 0, ts, '', '', partGrp, lr, deviceId,null];
         bindArr.push(bindVars);
     });
     insertEvents(req, res, sqlStatement, bindArr);
 }
-
-
 
 function insertEvents(req, res, sqlStatement, bindArr) {
 

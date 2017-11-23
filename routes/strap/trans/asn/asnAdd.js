@@ -31,7 +31,7 @@ function addInvoices(req, res) {
     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
 
     req.body.asnArr.forEach(function (obj) {
-        let bindVars = [obj.invId, 'Invoice', 'ASN Assigned', getDate(obj.asnDt), locId, '', '', obj.partNo, obj.qty, obj.invId, userId, 1, 0, ts, '', obj.asnId, partGrp, '', '', ''];
+        let bindVars = [obj.invId, 'Invoice', 'ASN Assigned',new Date() , locId, '', '', obj.partNo, obj.qty, obj.invId, userId, 1, 0, ts, getDate(obj.asnDt), obj.asnId, partGrp, '', '', ''];
         bindArr.push(bindVars);
     });
     insertEvents(req, res, sqlStatement, bindArr);

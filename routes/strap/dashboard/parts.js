@@ -18,9 +18,6 @@ router.get('/searchPart', function (req, res) {
     searchPart(req, res);
 });
 
-
-
-
 router.get('/chart', function (req, res) {
     getChart(req, res);
 });
@@ -32,8 +29,8 @@ function getData(req, res) {
 
     var partGrp = req.query.partGrp;
     var locType = req.query.locType;
-    var partNo = req.query.partNo;
-    var parts = {};
+    //var partNo = req.query.partNo;
+    //var parts = {};
 
     var doConnect = function (cb) {
         op.doConnectCB(function (err, conn) {
@@ -106,7 +103,8 @@ function searchPart(req, res) {
 
     var partGrp = req.query.partGrp;
     var partNo = req.query.partNo;
-
+    var locType = req.query.locType;
+    
     var doConnect = function (cb) {
         op.doConnectCB(function (err, conn) {
             if (err)
@@ -122,7 +120,6 @@ function searchPart(req, res) {
 	                              B.LOC_ID,
 		                      B.DESCRIPTION,
 		                      B.TYPE,
-		                      A.INVOICE_NUM,
 		                      SUM(A.QTY) QTY  ,
 		                      COUNT(*) AS BINS
                                  FROM BINS_T A , 
@@ -130,11 +127,12 @@ function searchPart(req, res) {
                                  WHERE A.FROM_LOC=B.LOC_ID 
 	                           AND A.QTY <>0  
 		                   AND A.PART_NO='${partNo}'
+                                   AND B.TYPE like '${locType}%'
 		                   AND EXISTS (SELECT 1 
 		                                 FROM PARTS_T
 					        WHERE PART_GRP = '${partGrp}'
 					          AND PART_NO=A.PART_NO)
-                              GROUP BY A.STATUS,B.LOC_ID,B.DESCRIPTION,B.TYPE,A.INVOICE_NUM`;
+                              GROUP BY A.STATUS,B.LOC_ID,B.DESCRIPTION,B.TYPE`;
         console.log(selectStatement);
 
         let bindVars = [];
@@ -301,6 +299,7 @@ function getChart(req, res) {
 function getPartsDet(req, res) {
     var locId = req.query.locId;
     var status = req.query.status;
+    var partGrp = req.query.partGrp;
         var sqlStatement = `SELECT PART_NO,
                                    COUNT(*) AS BINS,
                                    SUM(QTY) as QTY,
@@ -308,6 +307,7 @@ function getPartsDet(req, res) {
                               FROM BINS_T 
                              WHERE STATUS='${status}' 
                                AND FROM_LOC='${locId}'
+                               AND PART_GRP='${partGrp}'
                           GROUP BY PART_NO,INVOICE_NUM`;
 
     var bindVars = [];

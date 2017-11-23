@@ -50,17 +50,15 @@ function partsAssign(req, res) {
     
     req.body.objArray.forEach(function (obj) {
         console.log('Inside First for .. ');
+//        let binVars = [obj.objId, obj.type, 'Invoiced', new Date(), locId, null, obj.objLbl, obj.objPart, obj.objQty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+//        bindArr.push(binVars);
         obj.binArr.forEach(function (obj1) {
             console.log('Inside Second for .. ');
-            let binVars = [obj1.id, 'Bin', 'Invoiced', new Date(), locId, null, obj1.objLbl, partNo, obj1.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
+            let binVars = [obj1.id, 'Bin', 'Invoiced', new Date(), locId, null, obj1.objLbl, partNo, obj1.qty, invId, userId, null, 0, ts, null, obj.pickList, partGrp, null, null,null];
             bindArr.push(binVars);
         });
     });
-//    req.body.objArray.binArr.forEach(function (obj) {
-//        console.log(obj.id);
-//        let binVars = [obj.id, 'Bins', 'Invoiced', new Date(), locId, null, obj.objLbl, partNo, obj.qty, invId, userId, null, 0, ts, null, null, partGrp, null, null,null];
-//        bindArr.push(binVars);
-//    });
+
     insertEvents(req, res, sqlStatement, bindArr);
 }
 
@@ -186,14 +184,6 @@ function getPick(req, res) {
             } else {
                 result.rows.forEach(function (row) {
                     pickRes.binArr.push({id:row.id,qty:row.qty});
-//                    var resObj = row;
-//                    var desc = '';
-//                    desc = ((row.ID) ? "id :" + row.ID + "\n" : '')
-//                            + ((row.QTY) ? "qty :" + row.QTY + "\n" : '');
-//                            //+ ((row.LABEL) ? "label :" + row.LABEL + "\n" : '');
-//                    resObj.DESC = desc;
-//                    pckRes.bin.push(resObj);
-                 //pckRes.bin=row;
                 });
 
                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -227,23 +217,17 @@ function getId(req, res) {
   
     sqlStatement = `SELECT COUNT(1) AS "bins" , PART_NO as "partNo",PICK_LIST as "pickList",SUM(QTY) as "qty" FROM BINS_T WHERE PICK_LIST = '${pickList}' AND PART_GRP='${partGrp}' GROUP BY PART_NO,PICK_LIST order by part_no`;
      
-    console.log(sqlStatement);
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
 function getInvPicklist(req, res) {
-
     var invId = req.query.invId;
     var partGrp = req.query.partGrp;
-    console.log('Begin');
     var sqlStatement = `SELECT COUNT(1) as "bins",PART_NO as "partNo",PICK_LIST as "pickList",SUM(QTY) as "qty" FROM BINS_T WHERE PART_GRP='${partGrp}' AND INVOICE_NUM='${invId}' GROUP BY PICK_LIST,PART_NO ORDER BY PART_NO`;
     var bindVars = [];
     op.singleSQL(sqlStatement, bindVars, req, res);
-
 }
-
-
 
 function getInvParts(req, res) {
 

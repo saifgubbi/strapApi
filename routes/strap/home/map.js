@@ -15,9 +15,6 @@ module.exports = router;
 
 function getGeoLoc(req, res) {
     var request = require('request');
-    var partGrp = req.query.partGrp;
-    var invId = req.query.invId;
-    //var geoRes = {inv: {}, dev : {},curr: {}};
     var geoRes = {loc: [], dev: []};
     let devArr = [];
 
@@ -75,7 +72,6 @@ function getGeoLoc(req, res) {
                 console.log("Error Occured: ", err);
                 cb(err, conn);
             } else {
-                //
                 devArr = result.rows;
             }
             ;
@@ -102,7 +98,6 @@ function getGeoLoc(req, res) {
                         geoRes.dev.push(apiResp);
                     } catch (err) {
                         console.log(err);
-                        //geoRes.curr = {};
                     }
                     callback();
                 }

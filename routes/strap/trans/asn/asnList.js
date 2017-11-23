@@ -11,9 +11,9 @@ router.delete('/', function (req, res) {
     removeData(req, res);
 });
 
-router.post('/', function (req, res) {
-    addData(req, res);
-});
+//router.post('/', function (req, res) {
+//    addData(req, res);
+//});
 module.exports = router;
 
 
@@ -40,9 +40,9 @@ function removeData(req, res) {
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
-function addData(req, res) {
-     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
-     let bindVars = [req.query.invId, 'Invoice', 'ASN Assigned', new Date(), req.query.fromLoc, req.query.toLoc, '', req.query.partNo, req.query.qty, req.query.invId, req.body.query, 1, 0,  new Date().getTime(), '', '', req.query.partGrp, '', '',''];
-     console.log("Inserting :", bindVars.join());
-     op.singleSQL(sqlStatement, bindVars, req, res);
-    };
+//function addData(req, res) {
+//     let sqlStatement = "INSERT INTO EVENTS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12,:13,:14,:15,:16,:17,:18,:19,:20) ";
+//     let bindVars = [req.query.invId, 'Invoice', 'ASN Assigned', new Date(), req.query.fromLoc, req.query.toLoc, '', req.query.partNo, req.query.qty, req.query.invId, req.body.query, 1, 0,  new Date().getTime(), '', '', req.query.partGrp, '', '',''];
+//     console.log("Inserting :", bindVars.join());
+//     op.singleSQL(sqlStatement, bindVars, req, res);
+//    };

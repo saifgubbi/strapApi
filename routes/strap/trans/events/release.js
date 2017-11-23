@@ -4,7 +4,7 @@ var op = require('../../../../oracleDBOps');
 var async = require('async');
 
 router.post('/', function (req, res) {
-    palletize(req, res);
+    release(req, res);
 
 });
 
@@ -15,7 +15,7 @@ router.get('/getQty', function (req, res) {
 module.exports = router;
 
 
-function palletize(req, res) {
+function release(req, res) {
     let userId = req.body.userId;
     let locId = req.body.locId;
     let partGrp = req.body.partGrp;
@@ -107,9 +107,9 @@ function qetRel(req, res) {
     var sqlStatement;
     
     if (type === 'Bin') {
-        sqlStatement = `SELECT decode(qty,0,'Y','N') as "isEmpty" FROM BINS_T WHERE bin_id = '${id}'`;
+        sqlStatement = `SELECT decode(qty,0,'Y','N') as "isEmpty" FROM BINS_T WHERE bin_id = '${id}' and part_grp='${partGrp}'`;
     } else {
-        sqlStatement = `SELECT decode(qty,0,'Y','N') as "isEmpty" FROM PALLETS_T WHERE pallet_id = '${id}'`;
+        sqlStatement = `SELECT decode(qty,0,'Y','N') as "isEmpty" FROM PALLETS_T WHERE pallet_id = '${id}' and part_grp='${partGrp}'`;
     }
     var bindVars = [];
     console.log(sqlStatement);

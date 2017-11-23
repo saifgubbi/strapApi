@@ -43,6 +43,10 @@ router.put('/updatePass', function (req, res) {
     updatePassword(req, res);
 });
 
+//router.put('/resetPwd', function (req, res) {
+//    resetPassword(req, res);
+//});
+
 module.exports = router;
 
 
@@ -81,8 +85,9 @@ function getUserPart(req, res) {
 }
 
 function addData(req, res) {
-    var sqlStatement = "INSERT INTO USERS_T VALUES (:1,:2,:3,:4,:5,:6,:7,:8) ";
-
+    
+    var sqlStatement = "INSERT INTO USERS_T(USER_ID,PASSWORD,NAME,EMAIL,PHONE,ROLE,LOC_ID,PART_GRP) VALUES (:1,:2,:3,:4,:5,:6,:7,:8)";
+    console.log(sqlStatement);
     hashPass(req.body.password, function (hashPassword) {
         bindVars = [req.body.userId, hashPassword, req.body.name, req.body.email, req.body.phone, req.body.role, req.body.locId, req.body.partGrp];
         op.singleSQL(sqlStatement, bindVars, req, res);
@@ -197,3 +202,10 @@ function verifyUser(req, res) {
     op.singleSQL(sqlStatement, bindVars, req, res);
 }
 
+//function resetPassword(req, res) {
+//    var sqlStatement = "UPDATE USERS_T SET PASSWORD=:1 , ACC_LOCK=:2, LOGIN_NUM =:3 WHERE USER_ID=:4";
+//    hashPass(req.body.password, function (hashPassword) {
+//        var bindVars = [hashPassword, '','',req.body.userId];
+//        op.singleSQL(sqlStatement, bindVars, req, res);
+//    });
+//}

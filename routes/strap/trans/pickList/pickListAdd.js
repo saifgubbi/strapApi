@@ -2,9 +2,14 @@ var express = require('express');
 var router = express.Router();
 var op = require('../../../../oracleDBOps');
 var async = require('async');
+var oracledb = require('oracledb');
 
 router.post('/', function (req, res) {
-    addInvoices(req, res);
+    addPickList(req, res);
+});
+
+router.get('/', function (req, res) {
+    doChkPick(req, res);
 });
 
 module.exports = router;
@@ -19,8 +24,59 @@ function getDate(str1) {
     return date1;
 }
 
+function doChkPick(req, res) {
+    var doconnect = function (cb) {
+        op.doConnectCB(cb);
+    };
 
-function addInvoices(req, res) {
+    var dorelease = function (conn) {
+        conn.close();
+    };
+
+    var doSelect = function (conn, cb) {
+        console.log(req.query.pickList);
+        pickList = req.query.pickList;
+        let sqlStatement = `SELECT * FROM PICK_LIST_T WHERE PICK_LIST='${pickList}'`;
+        let bindVars = [];
+        //  console.log(bindVars.join());
+        conn.execute(sqlStatement
+                , bindVars, {
+                    outFormat: oracledb.OBJECT
+                }, function (err, result)
+        {
+            if (err) {
+                cb(err, conn);
+            } else {
+                console.log(sqlStatement);
+                if (result.rows.length === 0) {
+                    res.status(200).send({pickList:false});
+                    cb(null, conn);
+
+                } else {
+                    res.status(200).send({pickList:true});
+                    cb(null, conn);
+                }
+            }
+        });
+    };
+    async.waterfall(
+            [
+                doconnect,
+                doSelect
+            ],
+            function (err, conn) {
+                if (err) {
+                    console.error("In waterfall error cb: ==>", err, "<==");
+                    res.writeHead(400, {'Content-Type': 'application/json'});
+                    res.end(JSON.stringify(err));
+                }
+                if (conn)
+                    dorelease(conn);
+            });
+}
+;
+
+function addPickList(req, res) {
     let userId = req.body.userId;
     let partGrp = req.body.partGrp;
     let locId = req.body.locId;

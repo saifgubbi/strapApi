@@ -9,24 +9,12 @@ router.get('/', function (req, res) {
     getUser(req, res);
 });
 
-
-router.get('/binsDet', function (req, res) {
-    getBinsDet(req, res);
-});
-
-router.get('/history', function (req, res) {
-    getBinHist(req, res);
-});
-
-
-
 module.exports = router;
 
 
 function getUser(req, res) {
 
     var userId = req.query.userId;
-    //console
     var sqlStatement = `SELECT NAME,PART_GRP,LOC_ID,ROLE,EMAIL,PHONE 
                                   FROM users_t 
                                  WHERE user_id='${userId}'`;
